@@ -213,13 +213,4 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 修改为你需要的大
 MIT License
 
 ## 联系作者
-
-如有问题或建议，请提交Issue或Pull Request。
-
----
-
-**享受使用我的CMS系统！** 🚀
-# AI-CMS
-# AI-CMS
-# AI-CMS
-# AI-CMS
+taa
