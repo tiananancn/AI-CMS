@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %} {% if video %}编辑视频{% else %}添加视频{% endif %} {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="videoForm">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">视频标题 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg" name="title"
+                               value="{{ video.title if video else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">视频描述</label>
+                        <textarea class="form-control" name="description" rows="5"
+                                  placeholder="请输入视频描述">{{ video.description if video else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">视频URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" name="video_url"
+                               value="{{ video.video_url if video else '' }}"
+                               placeholder="例如：https://example.com/video.mp4 或 /uploads/videos/video.mp4" required>
+                        <small class="form-text text-muted">
+                            支持本地视频文件路径或外部视频链接（如YouTube、Bilibili等）
+                        </small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">发布设置</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">状态</label>
+                                <select class="form-select" name="status">
+                                    <option value="published" {% if not video or video.status == 'published' %}selected{% endif %}>立即发布</option>
+                                    <option value="draft" {% if video and video.status == 'draft' %}selected{% endif %}>保存为草稿</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">分类</label>
+                                <input type="text" class="form-control" name="category"
+                                       value="{{ video.category if video else '' }}"
+                                       placeholder="例如：教学、娱乐、音乐">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">标签</label>
+                                <input type="text" class="form-control" name="tags"
+                                       value="{{ video.tags if video else '' }}"
+                                       placeholder="多个标签用逗号分隔">
+                                <small class="form-text text-muted">例如：教学, Python, 编程</small>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>保存视频
+                                </button>
+                                <a href="{{ url_for('admin_videos') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>返回列表
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('videoForm').addEventListener('submit', function(e) {
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const videoUrl = document.querySelector('input[name="video_url"]').value.trim();
+
+    if (!title) {
+        e.preventDefault();
+        alert('请输入视频标题');
+        return false;
+    }
+
+    if (!videoUrl) {
+        e.preventDefault();
+        alert('请输入视频URL');
+        return false;
+    }
+});
+</script>
+{% endblock %}

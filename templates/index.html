@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}AI-CMS - 智能内容管理系统{% endblock %}
+
+{% block content %}
+<!-- Hero区域 -->
+{% if sections and sections|length > 0 and sections[0].type == 'hero' and sections[0].visible != false %}
+{% set hero_section = sections[0] %}
+<section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 0; margin-bottom: 0;">
+    <div class="container text-center">
+        <h1 class="display-4 mb-3 fw-bold">{{ hero_config.title if hero_config else '欢迎来到AI-CMS' }}</h1>
+        <p class="lead mb-4 opacity-90">{{ hero_config.subtitle if hero_config else '智能内容管理系统，让创作更简单' }}</p>
+        {% if not hero_config or hero_config.show_buttons != false %}
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ hero_config.button1_link if hero_config else '/articles' }}" class="btn btn-light btn-lg">
+                <i class="fas fa-newspaper me-2"></i>{{ hero_config.button1_text if hero_config else '阅读文章' }}
+            </a>
+            <a href="{{ hero_config.button2_link if hero_config else '/videos' }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-video me-2"></i>{{ hero_config.button2_text if hero_config else '观看视频' }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% else %}
+{% if not sections %}
+<!-- 默认Hero区域（如果没有配置） -->
+<section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 0; margin-bottom: 0;">
+    <div class="container text-center">
+        <h1 class="display-4 mb-3 fw-bold">欢迎来到AI-CMS</h1>
+        <p class="lead mb-4 opacity-90">智能内容管理系统，让创作更简单</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/articles" class="btn btn-light btn-lg">
+                <i class="fas fa-newspaper me-2"></i>阅读文章
+            </a>
+            <a href="/videos" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-video me-2"></i>观看视频
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endif %}
+
+<!-- 动态内容区域 -->
+<div class="container">
+    {% if sections %}
+        {% for section in sections %}
+            {% if section.visible and section.type == 'articles' %}
+            <!-- 文章区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-newspaper me-2"></i>{{ section.title if section.title else '最新文章' }}</h2>
+                    <a href="{{ url_for('articles_list') }}" class="btn btn-outline-primary">查看更多</a>
+                </div>
+
+                <div class="row">
+                    {% for article in articles %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card content-card h-100">
+                            <div class="position-relative">
+                                {% if article.cover_image %}
+                                <img src="/static/{{ article.cover_image }}" class="content-thumbnail" alt="{{ article.title }}">
+                                {% else %}
+                                <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-newspaper fa-3x text-muted"></i>
+                                </div>
+                                {% endif %}
+
+                                <!-- 红圈封面标识 -->
+                                {% if article.cover_image %}
+                                <div class="cover-badge">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ article.title }}</h5>
+                                <p class="card-text text-muted">{{ article.excerpt or article.content[:100] ~ '...' }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">{{ article.created_at.strftime('%Y-%m-%d') }}</small>
+                                    <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">阅读更多</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-newspaper fa-3x mb-3 d-block"></i>
+                            <p>暂无文章</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if section.visible and section.type == 'videos' %}
+            <!-- 视频区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-video me-2"></i>{{ section.title if section.title else '最新视频' }}</h2>
+                    <a href="{{ url_for('videos_list') }}" class="btn btn-outline-danger">查看更多</a>
+                </div>
+
+                <div class="row">
+                    {% for video in videos %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card content-card h-100">
+                            {% if video.thumbnail %}
+                            <img src="{{ video.thumbnail }}" class="content-thumbnail" alt="{{ video.title }}">
+                            {% else %}
+                            <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-play-circle fa-3x text-danger"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ video.title }}</h5>
+                                <p class="card-text text-muted">{{ video.description or '暂无描述' }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">{{ video.created_at.strftime('%Y-%m-%d') }}</small>
+                                    <a href="{{ url_for('video_detail', slug=video.slug) }}" class="btn btn-sm btn-danger">观看视频</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-video fa-3x mb-3 d-block"></i>
+                            <p>暂无视频</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if section.visible and section.type == 'images' %}
+            <!-- 图片区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-images me-2"></i>{{ section.title if section.title else '最新图片' }}</h2>
+                    <a href="{{ url_for('images_list') }}" class="btn btn-outline-success">查看更多</a>
+                </div>
+
+                <div class="row">
+                    {% for image in images %}
+                    <div class="col-md-3 mb-4">
+                        <div class="card content-card h-100">
+                            <img src="{{ url_for('static', filename=image.filepath) }}" class="content-thumbnail" alt="{{ image.title }}"
+                                 style="height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ image.title }}</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">{{ image.created_at.strftime('%Y-%m-%d') }}</small>
+                                    <a href="{{ url_for('image_detail', slug=image.slug) }}" class="btn btn-sm btn-success">查看大图</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-images fa-3x mb-3 d-block"></i>
+                            <p>暂无图片</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+    <!-- 如果没有配置，使用默认布局 -->
+    {% if articles %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-newspaper me-2"></i>最新文章</h2>
+            <a href="{{ url_for('articles_list') }}" class="btn btn-outline-primary">查看更多</a>
+        </div>
+        <div class="row">
+            {% for article in articles %}
+            <div class="col-md-4 mb-4">
+                <div class="card content-card h-100">
+                    {% if article.cover_image %}
+                    <img src="/static/{{ article.cover_image }}" class="content-thumbnail" alt="{{ article.title }}">
+                    {% else %}
+                    <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
+                        <i class="fas fa-newspaper fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ article.title }}</h5>
+                        <p class="card-text text-muted">{{ article.excerpt or article.content[:100] ~ '...' }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ article.created_at.strftime('%Y-%m-%d') }}</small>
+                            <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">阅读更多</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if videos %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-video me-2"></i>最新视频</h2>
+            <a href="{{ url_for('videos_list') }}" class="btn btn-outline-danger">查看更多</a>
+        </div>
+        <div class="row">
+            {% for video in videos %}
+            <div class="col-md-4 mb-4">
+                <div class="card content-card h-100">
+                    {% if video.thumbnail %}
+                    <img src="{{ video.thumbnail }}" class="content-thumbnail" alt="{{ video.title }}">
+                    {% else %}
+                    <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
+                        <i class="fas fa-play-circle fa-3x text-danger"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ video.title }}</h5>
+                        <p class="card-text text-muted">{{ video.description or '暂无描述' }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ video.created_at.strftime('%Y-%m-%d') }}</small>
+                            <a href="{{ url_for('video_detail', slug=video.slug) }}" class="btn btn-sm btn-danger">观看视频</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if images %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-images me-2"></i>最新图片</h2>
+            <a href="{{ url_for('images_list') }}" class="btn btn-outline-success">查看更多</a>
+        </div>
+        <div class="row">
+            {% for image in images %}
+            <div class="col-md-3 mb-4">
+                <div class="card content-card h-100">
+                    <img src="{{ url_for('static', filename=image.filepath) }}" class="content-thumbnail" alt="{{ image.title }}"
+                         style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ image.title }}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ image.created_at.strftime('%Y-%m-%d') }}</small>
+                            <a href="{{ url_for('image_detail', slug=image.slug) }}" class="btn btn-sm btn-success">查看大图</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

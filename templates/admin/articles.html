@@ -1,0 +1,90 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}文章管理{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('admin_article_new') }}" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i>新建文章
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>标题</th>
+                        <th>分类</th>
+                        <th>状态</th>
+                        <th>作者</th>
+                        <th>创建时间</th>
+                        <th width="150">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in articles %}
+                    <tr>
+                        <td>{{ article.id }}</td>
+                        <td>
+                            <a href="{{ url_for('article_detail', slug=article.slug) }}" target="_blank">
+                                {{ article.title }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if article.category %}
+                                <span class="badge bg-info">{{ article.category }}</span>
+                            {% else %}
+                                <span class="text-muted">未分类</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if article.status == 'published' %}
+                                <span class="badge bg-success">已发布</span>
+                            {% else %}
+                                <span class="badge bg-secondary">草稿</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ article.author }}</td>
+                        <td>{{ article.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin_article_edit', id=article.id) }}" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除"
+                                        onclick="confirmDelete({{ article.id }}, '{{ article.title }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                            暂无文章
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(id, title) {
+    if (confirm('确定要删除文章 "' + title + '" 吗？此操作不可撤销。')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/articles/${id}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

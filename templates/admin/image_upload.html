@@ -1,0 +1,160 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}上传图片{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="imageForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">图片标题 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg" name="title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">图片描述</label>
+                        <textarea class="form-control" name="description" rows="3"
+                                  placeholder="请输入图片描述"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">选择图片 <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="image" accept="image/*" required id="imageInput">
+                        <small class="form-text text-muted">
+                            支持格式: JPG, PNG, JPEG, GIF, BMP, WebP, SVG<br>
+                            文件大小限制: 最大 1GB
+                        </small>
+                        <div id="fileSizeInfo" class="mt-2"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">预览</label>
+                        <div id="imagePreview" class="mt-2">
+                            <img id="previewImg" style="max-width: 100%; display: none; border-radius: 8px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">发布设置</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">状态</label>
+                                <select class="form-select" name="status">
+                                    <option value="published">立即发布</option>
+                                    <option value="draft">保存为草稿</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">分类</label>
+                                <input type="text" class="form-control" name="category"
+                                       placeholder="例如：风景、人物、摄影">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">标签</label>
+                                <input type="text" class="form-control" name="tags"
+                                       placeholder="多个标签用逗号分隔">
+                                <small class="form-text text-muted">例如：风景, 自然, 摄影</small>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload me-2"></i>上传图片
+                                </button>
+                                <a href="{{ url_for('admin_images') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>返回列表
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const fileSizeInfo = document.getElementById('fileSizeInfo');
+    const previewImg = document.getElementById('previewImg');
+
+    if (file) {
+        // 显示文件大小
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        const fileSizeInfoText = `选中文件: ${file.name} (${fileSizeMB} MB)`;
+
+        // 检查文件大小
+        const maxSize = 1024 * 1024 * 1024; // 1GB
+        if (file.size > maxSize) {
+            fileSizeInfo.innerHTML = `<span class="text-danger">❌ 文件过大！最大允许 1024MB</span>`;
+            e.target.value = '';
+            return;
+        } else if (file.size > 100 * 1024 * 1024) { // 大于100MB显示警告
+            fileSizeInfo.innerHTML = `<span class="text-warning">⚠️ 注意：大文件上传可能需要较长时间</span>`;
+        } else {
+            fileSizeInfo.innerHTML = `<span class="text-success">✓ 文件大小: ${fileSizeMB} MB</span>`;
+        }
+
+        // 显示预览
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        fileSizeInfo.innerHTML = '';
+        previewImg.style.display = 'none';
+    }
+});
+
+document.getElementById('imageForm').addEventListener('submit', function(e) {
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const file = document.querySelector('input[name="image"]').files[0];
+
+    if (!title) {
+        e.preventDefault();
+        alert('请输入图片标题');
+        return false;
+    }
+
+    if (!file) {
+        e.preventDefault();
+        alert('请选择要上传的图片');
+        return false;
+    }
+
+    // 检查文件大小 (1GB)
+    const maxSize = 1024 * 1024 * 1024;
+    if (file.size > maxSize) {
+        e.preventDefault();
+        alert('文件过大！最大允许 1024MB (1GB)');
+        return false;
+    }
+
+    // 检查文件类型
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+        e.preventDefault();
+        alert('不支持的文件格式！请选择图片文件');
+        return false;
+    }
+
+    // 显示上传进度
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>上传中...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript 测试</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>封面图片功能测试</h1>
+
+        <div class="mt-4">
+            <button type="button" class="btn btn-outline-primary" onclick="showCoverImagePicker()">
+                <i class="fas fa-images me-2"></i>从图片库选择
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="uploadNewCoverImage()">
+                <i class="fas fa-upload me-2"></i>上传新封面
+            </button>
+        </div>
+
+        <div id="output" class="mt-4 alert alert-info" style="display:none;"></div>
+    </div>
+
+    <script>
+        console.log('脚本开始加载...');
+
+        // 测试函数1：图片库选择
+        function showCoverImagePicker() {
+            console.log('showCoverImagePicker 被调用!');
+            document.getElementById('output').style.display = 'block';
+            document.getElementById('output').innerHTML = '<h4>✅ 从图片库选择 - 按钮功能正常!</h4><p>正在加载图片库...</p>';
+
+            // 测试API调用
+            fetch('/api/images')
+                .then(response => response.json())
+                .then(images => {
+                    console.log('图片加载成功:', images);
+                    let html = '<h4>✅ API调用成功!</h4><p>找到 ' + images.length + ' 张图片:</p><ul>';
+                    images.forEach(img => {
+                        html += '<li>' + img.title + ' - ' + img.filepath + '</li>';
+                    });
+                    html += '</ul>';
+                    document.getElementById('output').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('API调用失败:', error);
+                    document.getElementById('output').innerHTML = '<h4>❌ API调用失败</h4><p>' + error + '</p>';
+                });
+        }
+
+        // 测试函数2：上传新封面
+        function uploadNewCoverImage() {
+            console.log('uploadNewCoverImage 被调用!');
+            document.getElementById('output').style.display = 'block';
+            document.getElementById('output').innerHTML = '<h4>✅ 上传新封面 - 按钮功能正常!</h4><p>请选择图片文件...</p>';
+
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('文件已选择:', file.name, file.size);
+                    document.getElementById('output').innerHTML = '<h4>✅ 文件选择成功!</h4><p>文件名: ' + file.name + '<br>大小: ' + (file.size/1024).toFixed(2) + ' KB</p>';
+                }
+            };
+            input.click();
+        }
+
+        console.log('脚本加载完成!');
+        document.getElementById('output').innerHTML = '<h4>🚀 JavaScript测试页面已就绪</h4><p>点击上方按钮测试功能</p>';
+        document.getElementById('output').style.display = 'block';
+    </script>
+</body>
+</html>

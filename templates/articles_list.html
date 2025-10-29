@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}文章列表 - 我的CMS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面头部 -->
+    <div class="page-header mb-4">
+        <h1><i class="fas fa-newspaper me-2"></i>文章列表</h1>
+        <p class="text-muted">浏览所有精彩文章内容</p>
+    </div>
+
+    <div class="row">
+        <!-- 主内容区 -->
+        <div class="col-lg-9">
+            <!-- 筛选栏 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <select name="category" class="form-select" onchange="this.form.submit()">
+                                <option value="">所有分类</option>
+                                <option value="技术" {% if category == '技术' %}selected{% endif %}>技术</option>
+                                <option value="教程" {% if category == '教程' %}selected{% endif %}>教程</option>
+                                <option value="新闻" {% if category == '新闻' %}selected{% endif %}>新闻</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="搜索文章...">
+                                <button class="btn btn-primary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 文章列表 -->
+            <div class="articles-list">
+                {% for article in articles.items %}
+                <article class="card mb-4 article-item">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if article.cover_image %}
+                            <img src="{{ article.cover_image }}" class="img-fluid rounded-start h-100"
+                                 alt="{{ article.title }}" style="object-fit: cover; min-height: 200px;">
+                            {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center h-100"
+                                 style="min-height: 200px;">
+                                <i class="fas fa-newspaper fa-4x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body h-100 d-flex flex-column">
+                                <h3 class="card-title">
+                                    <a href="{{ url_for('article_detail', slug=article.slug) }}" class="text-decoration-none">
+                                        {{ article.title }}
+                                    </a>
+                                </h3>
+                                <p class="card-text text-muted">{{ article.excerpt or article.content[:150] ~ '...' }}</p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>{{ article.author }}
+                                                <span class="mx-2">|</span>
+                                                <i class="fas fa-calendar me-1"></i>{{ article.created_at.strftime('%Y-%m-%d') }}
+                                            </small>
+                                        </div>
+                                        <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">
+                                            阅读更多
+                                        </a>
+                                    </div>
+                                    {% if article.tags %}
+                                    <div class="mt-2">
+                                        {% for tag in article.tags.split(',')[:3] %}
+                                        <span class="badge bg-light text-dark">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-newspaper fa-3x text-muted mb-3 d-block"></i>
+                    <p class="text-muted">暂无文章</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 分页 -->
+            {% if articles.pages > 1 %}
+            <nav aria-label="文章分页">
+                <ul class="pagination justify-content-center">
+                    {% if articles.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('articles_list', page=articles.prev_num, category=category) }}">上一页</a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in articles.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != articles.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('articles_list', page=page_num, category=category) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if articles.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('articles_list', page=articles.next_num, category=category) }}">下一页</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <!-- 侧边栏 -->
+        <div class="col-lg-3">
+            <div class="sidebar">
+                <h5 class="mb-3">文章分类</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{{ url_for('articles_list') }}" class="text-decoration-none">
+                            <i class="fas fa-folder me-2"></i>所有文章
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{{ url_for('articles_list', category='技术') }}" class="text-decoration-none">
+                            <i class="fas fa-folder me-2"></i>技术
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{{ url_for('articles_list', category='教程') }}" class="text-decoration-none">
+                            <i class="fas fa-folder me-2"></i>教程
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{{ url_for('articles_list', category='新闻') }}" class="text-decoration-none">
+                            <i class="fas fa-folder me-2"></i>新闻
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

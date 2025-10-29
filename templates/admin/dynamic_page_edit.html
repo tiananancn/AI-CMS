@@ -1,0 +1,101 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}{% if page %}编辑动态页面{% else %}新建动态页面{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{% if page %}编辑动态页面{% else %}新建动态页面{% endif %}</h1>
+    <a href="{{ url_for('admin_dynamic_pages') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>返回列表
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">页面标题 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg" name="title"
+                               value="{{ page.title if page else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">页面别名 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="slug"
+                               value="{{ page.slug if page else '' }}"
+                               placeholder="例如：my-page" required>
+                        <small class="form-text text-muted">
+                            用于URL的唯一标识，只能包含字母、数字和连字符
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">页面描述</label>
+                        <textarea class="form-control" name="description" rows="3"
+                                  placeholder="请输入页面描述">{{ page.description if page else '' }}</textarea>
+                        <small class="form-text text-muted">简要描述页面内容，用于SEO</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">封面图片URL</label>
+                        <input type="text" class="form-control" name="cover_image"
+                               value="{{ page.cover_image if page else '' }}"
+                               placeholder="/static/uploads/images/cover.jpg">
+                        <small class="form-text text-muted">可选，用于页面预览图</small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">发布设置</h6>
+
+                            {% if page %}
+                            <div class="mb-3">
+                                <label class="form-label">状态</label>
+                                <select class="form-select" name="status">
+                                    <option value="published" {% if page.status == 'published' %}selected{% endif %}>立即发布</option>
+                                    <option value="draft" {% if page.status == 'draft' %}selected{% endif %}>保存为草稿</option>
+                                </select>
+                            </div>
+                            {% endif %}
+
+                            <hr>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>保存设置
+                                </button>
+                                {% if page %}
+                                <a href="{{ url_for('admin_dynamic_page_editor', id=page.id) }}" class="btn btn-success">
+                                    <i class="fas fa-edit me-2"></i>进入拖拽编辑器
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('admin_dynamic_pages') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>返回列表
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if page %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">页面预览</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>页面URL：</strong> <code>{{ request.host_url }}page/{{ page.slug }}</code></p>
+        <a href="{{ url_for('dynamic_page_view', slug=page.slug) }}" class="btn btn-info" target="_blank">
+            <i class="fas fa-external-link-alt me-2"></i>在新窗口中预览
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

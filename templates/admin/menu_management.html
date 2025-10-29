@@ -1,0 +1,428 @@
+{% extends "admin/base.html" %}
+
+{% block title %}菜单管理 - AI-CMS{% endblock %}
+
+{% block head %}
+<style>
+    .menu-card {
+        transition: all 0.3s ease;
+        cursor: move;
+        border-left: 4px solid #4a90e2;
+    }
+    .menu-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+    .menu-card.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    .sortable-ghost {
+        opacity: 0.4;
+    }
+    .drag-handle {
+        cursor: move;
+        color: #adb5bd;
+        font-size: 1.2rem;
+    }
+    .drag-handle:hover {
+        color: #495057;
+    }
+    .menu-icon {
+        width: 30px;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+    .child-menu {
+        margin-left: 3rem;
+        border-left: 2px dashed #dee2e6;
+    }
+    .form-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-bars me-2"></i>菜单管理</h1>
+        <a href="{{ url_for('index') }}" target="_blank" class="btn btn-outline-primary">
+            <i class="fas fa-external-link-alt me-2"></i>预览首页
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>菜单列表</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">拖拽菜单项调整顺序，勾选控制是否显示</p>
+
+                    <div id="menus-list">
+                        <!-- Menus will be loaded here -->
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-success w-100" onclick="saveMenus()">
+                            <i class="fas fa-save me-2"></i>保存所有更改
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>添加/编辑菜单</h5>
+                </div>
+                <div class="card-body">
+                    <form id="menu-form">
+                        <input type="hidden" id="menu-id" value="">
+
+                        <div class="mb-3">
+                            <label class="form-label">菜单名称 <span class="text-danger">*</span></label>
+                            <input type="text" id="menu-label" class="form-control" placeholder="例如：首页" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">链接地址 <span class="text-danger">*</span></label>
+                            <input type="text" id="menu-url" class="form-control" placeholder="例如：/ 或 /articles" required>
+                            <small class="form-text text-muted">以 / 开头，或完整URL</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">图标类名</label>
+                            <input type="text" id="menu-icon" class="form-control" placeholder="例如：fas fa-home">
+                            <small class="form-text text-muted">
+                                <a href="https://fontawesome.com/icons" target="_blank">Font Awesome图标</a>
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">父菜单</label>
+                            <select id="menu-parent" class="form-select">
+                                <option value="">-- 顶级菜单 --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="menu-visible" checked>
+                            <label class="form-check-label">显示此菜单</label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>保存菜单
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                <i class="fas fa-undo me-2"></i>重置表单
+                            </button>
+                            <button type="button" class="btn btn-danger" id="delete-btn" onclick="deleteMenu()" style="display: none;">
+                                <i class="fas fa-trash me-2"></i>删除菜单
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    let menus = [];
+    let sortables = [];
+    let editingMenuId = null;
+
+    // 页面加载时获取菜单
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMenus();
+    });
+
+    function loadMenus() {
+        fetch('/api/admin/menu-items')
+            .then(response => response.json())
+            .then(data => {
+                menus = data.data || [];
+                renderMenus();
+                updateParentOptions();
+            })
+            .catch(error => {
+                console.error('Error loading menus:', error);
+                alert('加载菜单失败');
+            });
+    }
+
+    function renderMenus() {
+        const container = document.getElementById('menus-list');
+        container.innerHTML = '';
+
+        menus.forEach(menu => {
+            const menuCard = createMenuCard(menu, 0);
+            container.appendChild(menuCard);
+        });
+
+        // 初始化拖拽排序
+        initSortable();
+    }
+
+    function createMenuCard(menu, level) {
+        const card = document.createElement('div');
+        card.className = `card menu-card mb-2 ${level > 0 ? 'child-menu' : ''}`;
+        card.dataset.menuId = menu.id;
+        card.dataset.level = level;
+
+        const indentStyle = level > 0 ? `style="padding-left: ${level * 2}rem;"` : '';
+
+        card.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="drag-handle fas fa-grip-vertical me-3" ${indentStyle}></i>
+                    <div class="menu-icon">
+                        ${menu.icon ? `<i class="${menu.icon}"></i>` : '<i class="fas fa-circle text-muted"></i>'}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center">
+                            <h6 class="mb-0 me-2">${menu.label}</h6>
+                            <small class="text-muted">${menu.url}</small>
+                        </div>
+                    </div>
+                    <div class="ms-3 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" ${menu.visible ? 'checked' : ''}
+                               onchange="toggleMenuVisibility(${menu.id}, this.checked)">
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="editMenu(${menu.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // 递归渲染子菜单
+        if (menu.children && menu.children.length > 0) {
+            menu.children.forEach(child => {
+                const childCard = createMenuCard(child, level + 1);
+                card.appendChild(childCard);
+            });
+        }
+
+        return card;
+    }
+
+    function initSortable() {
+        // 清除之前的sortable实例
+        sortables.forEach(sortable => sortable.destroy());
+        sortables = [];
+
+        // 为每个层级的菜单创建sortable
+        const levels = {};
+        document.querySelectorAll('.menu-card').forEach(card => {
+            const level = card.dataset.level;
+            if (!levels[level]) {
+                levels[level] = [];
+            }
+            levels[level].push(card);
+        });
+
+        for (const level in levels) {
+            const cards = levels[level];
+            if (cards.length > 1) {
+                const sortable = new Sortable(cards, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'dragging',
+                    handle: '.drag-handle',
+                    onEnd: function(evt) {
+                        updateMenuOrder();
+                    }
+                });
+                sortables.push(sortable);
+            }
+        }
+    }
+
+    function updateMenuOrder() {
+        const cards = document.querySelectorAll('.menu-card');
+        cards.forEach((card, index) => {
+            const menuId = parseInt(card.dataset.menuId);
+            const menu = menus.find(m => m.id === menuId);
+            if (menu) {
+                menu.order = index;
+            }
+        });
+    }
+
+    function toggleMenuVisibility(menuId, visible) {
+        const menu = findMenuById(menuId);
+        if (menu) {
+            menu.visible = visible;
+        }
+    }
+
+    function findMenuById(id) {
+        for (let menu of menus) {
+            if (menu.id === id) return menu;
+            if (menu.children) {
+                for (let child of menu.children) {
+                    if (child.id === id) return child;
+                }
+            }
+        }
+        return null;
+    }
+
+    function editMenu(menuId) {
+        const menu = findMenuById(menuId);
+        if (!menu) return;
+
+        editingMenuId = menuId;
+        document.getElementById('menu-id').value = menu.id;
+        document.getElementById('menu-label').value = menu.label;
+        document.getElementById('menu-url').value = menu.url;
+        document.getElementById('menu-icon').value = menu.icon || '';
+        document.getElementById('menu-parent').value = menu.parent_id || '';
+        document.getElementById('menu-visible').checked = menu.visible;
+        document.getElementById('delete-btn').style.display = 'block';
+    }
+
+    function resetForm() {
+        editingMenuId = null;
+        document.getElementById('menu-form').reset();
+        document.getElementById('menu-id').value = '';
+        document.getElementById('menu-visible').checked = true;
+        document.getElementById('delete-btn').style.display = 'none';
+    }
+
+    function deleteMenu() {
+        if (!editingMenuId) return;
+
+        if (!confirm('确定要删除这个菜单吗？所有子菜单也会被删除。')) {
+            return;
+        }
+
+        fetch(`/api/admin/menu-items/${editingMenuId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('菜单删除成功');
+                resetForm();
+                loadMenus();
+            } else {
+                alert('删除失败：' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting menu:', error);
+            alert('删除失败');
+        });
+    }
+
+    function updateParentOptions() {
+        const select = document.getElementById('menu-parent');
+        select.innerHTML = '<option value="">-- 顶级菜单 --</option>';
+
+        menus.forEach(menu => {
+            const option = document.createElement('option');
+            option.value = menu.id;
+            option.textContent = menu.label;
+            select.appendChild(option);
+        });
+    }
+
+    document.getElementById('menu-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const menuData = {
+            label: document.getElementById('menu-label').value,
+            url: document.getElementById('menu-url').value,
+            icon: document.getElementById('menu-icon').value || null,
+            parent_id: document.getElementById('menu-parent').value || null,
+            visible: document.getElementById('menu-visible').checked
+        };
+
+        const url = editingMenuId
+            ? `/api/admin/menu-items/${editingMenuId}`
+            : '/api/admin/menu-items';
+
+        const method = editingMenuId ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(menuData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('菜单保存成功');
+                resetForm();
+                loadMenus();
+            } else {
+                alert('保存失败：' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving menu:', error);
+            alert('保存失败');
+        });
+    });
+
+    function saveMenus() {
+        // 更新所有菜单的顺序
+        const cards = document.querySelectorAll('.menu-card');
+        const updates = [];
+
+        cards.forEach((card, index) => {
+            const menuId = parseInt(card.dataset.menuId);
+            updates.push({
+                id: menuId,
+                order: index
+            });
+        });
+
+        fetch('/api/admin/menu-items/reorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ items: updates })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('保存成功！');
+                loadMenus();
+            } else {
+                alert('保存失败：' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving menus:', error);
+            alert('保存失败');
+        });
+    }
+</script>
+{% endblock %}

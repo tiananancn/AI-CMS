@@ -1,0 +1,627 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}拖拽式编辑器 - {{ page.title }}{% endblock %}
+
+{% block styles %}
+<style>
+    .editor-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .toolbar {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .toolbar .btn-group {
+        margin-right: 10px;
+    }
+
+    .content-blocks {
+        min-height: 400px;
+        padding: 20px;
+        background: #fff;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+    }
+
+    .content-block {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .content-block:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+    }
+
+    .content-block.dragging {
+        opacity: 0.5;
+        transform: rotate(2deg);
+    }
+
+    .block-header {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 6px 6px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;
+    }
+
+    .block-header .block-type {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .block-header .block-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    .block-content {
+        padding: 20px;
+    }
+
+    .block-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: none;
+        gap: 5px;
+    }
+
+    .content-block:hover .block-controls {
+        display: flex;
+    }
+
+    .ghost {
+        opacity: 0.5;
+        background: #f8f9fa;
+    }
+
+    .drag-placeholder {
+        border: 2px dashed #0d6efd !important;
+        background: #f8f9fa;
+        height: 60px;
+        margin-bottom: 15px;
+        border-radius: 6px;
+    }
+
+    /* 不同类型块的样式 */
+    .block-type-text {
+        border-left: 4px solid #0d6efd;
+    }
+
+    .block-type-image {
+        border-left: 4px solid #198754;
+    }
+
+    .block-type-video {
+        border-left: 4px solid #dc3545;
+    }
+
+    .block-type-quote {
+        border-left: 4px solid #ffc107;
+        font-style: italic;
+    }
+
+    .block-type-divider {
+        border-left: 4px solid #6c757d;
+    }
+
+    .block-type-article {
+        border-left: 4px solid #20c997;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+
+    /* 编辑模式样式 */
+    .editing {
+        background: #fff3cd;
+        border-color: #ffc107;
+    }
+
+    .editing .block-header {
+        background: #fff3cd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">拖拽式编辑器</h1>
+            <p class="text-muted mb-0">{{ page.title }}</p>
+        </div>
+        <div class="btn-group">
+            <a href="{{ url_for('dynamic_page_view', slug=page.slug) }}" class="btn btn-info" target="_blank">
+                <i class="fas fa-eye me-2"></i>预览
+            </a>
+            <a href="{{ url_for('admin_dynamic_page_edit', id=page.id) }}" class="btn btn-secondary">
+                <i class="fas fa-cog me-2"></i>设置
+            </a>
+            <button onclick="savePage()" class="btn btn-success">
+                <i class="fas fa-save me-2"></i>保存页面
+            </button>
+        </div>
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="toolbar">
+        <div class="d-flex flex-wrap gap-2">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" onclick="addBlock('text')">
+                    <i class="fas fa-file-alt me-1"></i>文本
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="addBlock('image')">
+                    <i class="fas fa-image me-1"></i>图片
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="addBlock('video')">
+                    <i class="fas fa-video me-1"></i>视频
+                </button>
+                <button type="button" class="btn btn-outline-warning" onclick="addBlock('quote')">
+                    <i class="fas fa-quote-left me-1"></i>引用
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="addBlock('divider')">
+                    <i class="fas fa-minus me-1"></i>分隔线
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="addBlock('article')">
+                    <i class="fas fa-newspaper me-1"></i>文章引用
+                </button>
+            </div>
+            <div class="ms-auto">
+                <button type="button" class="btn btn-outline-dark" onclick="loadBlocks()">
+                    <i class="fas fa-sync-alt me-1"></i>刷新
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 拖拽区域 -->
+    <div id="contentBlocks" class="content-blocks">
+        <div class="empty-state">
+            <i class="fas fa-mouse-pointer"></i>
+            <h4>开始创建你的页面</h4>
+            <p>点击上方按钮添加内容块，然后拖拽调整顺序</p>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑模态框 -->
+<div class="modal fade" id="editBlockModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑内容块</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="editBlockContent">
+                <!-- 动态加载编辑表单 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveBlockEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- SortableJS for drag and drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<!-- Quill.js for rich text editing -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+<script>
+    let currentEditingBlock = null;
+    let sortable = null;
+    let quillEditor = null;
+
+    // 页面ID
+    const pageId = {{ page.id }};
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        initSortable();
+        loadBlocks();
+    });
+
+    // 初始化拖拽排序
+    function initSortable() {
+        const container = document.getElementById('contentBlocks');
+        sortable = Sortable.create(container, {
+            animation: 150,
+            ghostClass: 'ghost',
+            chosenClass: 'dragging',
+            dragClass: 'drag-placeholder',
+            onEnd: function(evt) {
+                saveBlockOrder();
+            }
+        });
+    }
+
+    // 加载所有内容块
+    async function loadBlocks() {
+        try {
+            const response = await fetch(`/api/admin/pages/${pageId}/blocks`);
+            const blocks = await response.json();
+
+            const container = document.getElementById('contentBlocks');
+            container.innerHTML = '';
+
+            if (blocks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <h4>开始创建你的页面</h4>
+                        <p>点击上方按钮添加内容块，然后拖拽调整顺序</p>
+                    </div>
+                `;
+                return;
+            }
+
+            blocks.forEach(block => {
+                const blockElement = createBlockElement(block);
+                container.appendChild(blockElement);
+            });
+        } catch (error) {
+            console.error('加载内容块失败:', error);
+            alert('加载内容块失败');
+        }
+    }
+
+    // 创建内容块元素
+    function createBlockElement(block) {
+        const div = document.createElement('div');
+        div.className = `content-block block-type-${block.block_type}`;
+        div.dataset.blockId = block.id;
+
+        const blockTypeNames = {
+            'text': '文本',
+            'image': '图片',
+            'video': '视频',
+            'quote': '引用',
+            'divider': '分隔线',
+            'article': '文章引用'
+        };
+
+        div.innerHTML = `
+            <div class="block-header">
+                <span class="block-type">
+                    <i class="fas ${getBlockIcon(block.block_type)} me-2"></i>
+                    ${blockTypeNames[block.block_type] || block.block_type}
+                </span>
+                <div class="block-controls">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editBlock(${block.id})" title="编辑">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBlock(${block.id})" title="删除">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="block-content">
+                ${renderBlockContent(block)}
+            </div>
+        `;
+
+        return div;
+    }
+
+    // 获取块类型图标
+    function getBlockIcon(type) {
+        const icons = {
+            'text': 'fa-file-alt',
+            'image': 'fa-image',
+            'video': 'fa-video',
+            'quote': 'fa-quote-left',
+            'divider': 'fa-minus',
+            'article': 'fa-newspaper'
+        };
+        return icons[type] || 'fa-file';
+    }
+
+    // 渲染块内容
+    function renderBlockContent(block) {
+        const content = block.content || {};
+
+        switch (block.block_type) {
+            case 'text':
+                return content.html || '<p>点击编辑文本内容</p>';
+
+            case 'image':
+                return content.url ?
+                    `<img src="${content.url}" alt="${content.alt || ''}" style="max-width: 100%;">` :
+                    '<p class="text-muted">点击编辑图片</p>';
+
+            case 'video':
+                return content.url ?
+                    `<video controls style="max-width: 100%;"><source src="${content.url}"></video>` :
+                    '<p class="text-muted">点击编辑视频</p>';
+
+            case 'quote':
+                return content.text ?
+                    `<blockquote class="blockquote"><p>${content.text}</p>${content.author ? `<footer class="blockquote-footer">${content.author}</footer>` : ''}</blockquote>` :
+                    '<p class="text-muted">点击编辑引用</p>';
+
+            case 'divider':
+                return '<hr>';
+
+            case 'article':
+                return content.articleId ?
+                    `<div class="card"><div class="card-body"><h6>文章引用 #${content.articleId}</h6><p class="text-muted">点击选择文章</p></div></div>` :
+                    '<p class="text-muted">点击选择文章</p>';
+
+            default:
+                return '<p>未知类型</p>';
+        }
+    }
+
+    // 添加新块
+    async function addBlock(type) {
+        try {
+            const response = await fetch(`/api/admin/pages/${pageId}/blocks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    block_type: type,
+                    content: {},
+                    style: {}
+                })
+            });
+
+            const block = await response.json();
+            await loadBlocks();
+
+            // 立即编辑新添加的块
+            setTimeout(() => editBlock(block.id), 100);
+        } catch (error) {
+            console.error('添加块失败:', error);
+            alert('添加块失败');
+        }
+    }
+
+    // 编辑块
+    async function editBlock(blockId) {
+        try {
+            const response = await fetch(`/api/admin/blocks/${blockId}`);
+            const block = await response.json();
+            currentEditingBlock = block;
+
+            const modalContent = document.getElementById('editBlockContent');
+            modalContent.innerHTML = getEditForm(block);
+
+            // 如果是文本块，初始化Quill编辑器
+            if (block.block_type === 'text' && !quillEditor) {
+                setTimeout(() => {
+                    const editorDiv = document.getElementById('quill-editor');
+                    if (editorDiv) {
+                        quillEditor = new Quill('#quill-editor', {
+                            theme: 'snow',
+                            placeholder: '输入文本内容...',
+                            modules: {
+                                toolbar: [
+                                    [{ 'header': [1, 2, 3, false] }],
+                                    ['bold', 'italic', 'underline', 'strike'],
+                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                    [{ 'color': [] }, { 'background': [] }],
+                                    ['link', 'image'],
+                                    ['clean']
+                                ]
+                            }
+                        });
+
+                        // 设置初始内容
+                        if (block.content && block.content.html) {
+                            quillEditor.root.innerHTML = block.content.html;
+                        }
+                    }
+                }, 100);
+            }
+
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('editBlockModal'));
+            modal.show();
+        } catch (error) {
+            console.error('加载编辑内容失败:', error);
+            alert('加载编辑内容失败');
+        }
+    }
+
+    // 获取编辑表单
+    function getEditForm(block) {
+        const content = block.content || {};
+
+        switch (block.block_type) {
+            case 'text':
+                return `
+                    <div>
+                        <label class="form-label">文本内容</label>
+                        <div id="quill-editor" style="height: 300px;"></div>
+                    </div>
+                `;
+
+            case 'image':
+                return `
+                    <div class="mb-3">
+                        <label class="form-label">图片URL</label>
+                        <input type="text" id="imageUrl" class="form-control" value="${content.url || ''}" placeholder="/static/uploads/images/example.jpg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Alt文本</label>
+                        <input type="text" id="imageAlt" class="form-control" value="${content.alt || ''}" placeholder="图片描述">
+                    </div>
+                `;
+
+            case 'video':
+                return `
+                    <div class="mb-3">
+                        <label class="form-label">视频URL</label>
+                        <input type="text" id="videoUrl" class="form-control" value="${content.url || ''}" placeholder="/static/uploads/videos/example.mp4">
+                    </div>
+                `;
+
+            case 'quote':
+                return `
+                    <div class="mb-3">
+                        <label class="form-label">引用文本</label>
+                        <textarea id="quoteText" class="form-control" rows="3" placeholder="输入引用文本">${content.text || ''}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">作者</label>
+                        <input type="text" id="quoteAuthor" class="form-control" value="${content.author || ''}" placeholder="引用来源">
+                    </div>
+                `;
+
+            case 'article':
+                return `
+                    <div class="mb-3">
+                        <label class="form-label">选择文章</label>
+                        <select id="articleSelect" class="form-select">
+                            <option value="">请选择文章</option>
+                            ${content.articleId ? `<option value="${content.articleId}" selected>文章 #${content.articleId}</option>` : ''}
+                        </select>
+                    </div>
+                `;
+
+            default:
+                return '<p>不支持的块类型</p>';
+        }
+    }
+
+    // 保存块编辑
+    async function saveBlockEdit() {
+        if (!currentEditingBlock) return;
+
+        try {
+            let updatedContent = {};
+
+            switch (currentEditingBlock.block_type) {
+                case 'text':
+                    if (quillEditor) {
+                        updatedContent.html = quillEditor.root.innerHTML;
+                    }
+                    break;
+
+                case 'image':
+                    updatedContent = {
+                        url: document.getElementById('imageUrl').value,
+                        alt: document.getElementById('imageAlt').value
+                    };
+                    break;
+
+                case 'video':
+                    updatedContent = {
+                        url: document.getElementById('videoUrl').value
+                    };
+                    break;
+
+                case 'quote':
+                    updatedContent = {
+                        text: document.getElementById('quoteText').value,
+                        author: document.getElementById('quoteAuthor').value
+                    };
+                    break;
+
+                case 'article':
+                    updatedContent = {
+                        articleId: document.getElementById('articleSelect').value
+                    };
+                    break;
+            }
+
+            const response = await fetch(`/api/admin/blocks/${currentEditingBlock.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: updatedContent
+                })
+            });
+
+            if (response.ok) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editBlockModal'));
+                modal.hide();
+                loadBlocks();
+                currentEditingBlock = null;
+                quillEditor = null;
+            }
+        } catch (error) {
+            console.error('保存块失败:', error);
+            alert('保存块失败');
+        }
+    }
+
+    // 删除块
+    async function deleteBlock(blockId) {
+        if (!confirm('确定要删除这个内容块吗？')) return;
+
+        try {
+            const response = await fetch(`/api/admin/blocks/${blockId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                loadBlocks();
+            }
+        } catch (error) {
+            console.error('删除块失败:', error);
+            alert('删除块失败');
+        }
+    }
+
+    // 保存块顺序
+    async function saveBlockOrder() {
+        const blocks = document.querySelectorAll('.content-block');
+        const blockOrders = Array.from(blocks).map(block => parseInt(block.dataset.blockId));
+
+        try {
+            await fetch(`/api/admin/pages/${pageId}/blocks/reorder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    block_orders: blockOrders
+                })
+            });
+        } catch (error) {
+            console.error('保存顺序失败:', error);
+        }
+    }
+
+    // 保存页面
+    function savePage() {
+        alert('页面已自动保存！所有更改都已实时同步到服务器。');
+    }
+</script>
+{% endblock %}

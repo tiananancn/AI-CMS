@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }} - {{ page.description or '动态页面' }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --grid-size: 12;
+            --grid-gap: 15px;
+            --grid-row-height: 100px;
+        }
+
+        body {
+            background: #f8f9fa;
+            padding: 20px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .page-header .description {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            grid-template-rows: repeat(auto, var(--grid-row-height));
+            gap: var(--grid-gap);
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .grid-item {
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .grid-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* 文本块样式 */
+        .grid-item[data-type="text"] {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-left: 4px solid #667eea;
+        }
+
+        .text-content {
+            padding: 20px;
+            line-height: 1.8;
+        }
+
+        .text-content h1, .text-content h2, .text-content h3 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .text-content p {
+            margin-bottom: 1em;
+            font-size: 1.1rem;
+        }
+
+        .text-content ul, .text-content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+
+        .text-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        /* 图片块样式 */
+        .grid-item[data-type="image"] {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(32, 201, 151, 0.05) 100%);
+            border-left: 4px solid #28a745;
+        }
+
+        .image-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .image-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .image-content .caption {
+            margin-top: 10px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* 视频块样式 */
+        .grid-item[data-type="video"] {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(232, 62, 140, 0.05) 100%);
+            border-left: 4px solid #dc3545;
+        }
+
+        .video-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .video-content video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* 引用块样式 */
+        .grid-item[data-type="quote"] {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(253, 126, 20, 0.05) 100%);
+            border-left: 4px solid #ffc107;
+        }
+
+        .quote-content {
+            padding: 20px;
+            position: relative;
+        }
+
+        .quote-content:before {
+            content: '\f10d';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 3rem;
+            color: #ffc107;
+            opacity: 0.2;
+        }
+
+        .quote-content blockquote {
+            margin: 0;
+            font-size: 1.3rem;
+            line-height: 1.6;
+            padding-left: 50px;
+            font-style: italic;
+            color: #2c3e50;
+        }
+
+        .quote-content footer {
+            margin-top: 15px;
+            padding-left: 50px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* 文章引用样式 */
+        .grid-item[data-type="article"] {
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.05) 0%, rgba(102, 16, 242, 0.05) 100%);
+            border-left: 4px solid #17a2b8;
+        }
+
+        .article-content {
+            padding: 20px;
+        }
+
+        .article-content .card {
+            border: none;
+            background: transparent;
+        }
+
+        /* 按钮样式 */
+        .grid-item[data-type="button"] {
+            background: transparent;
+            border: none;
+        }
+
+        .button-content {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .custom-btn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .custom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary-custom {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success-custom {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger-custom {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* 间距块样式 */
+        .grid-item[data-type="spacer"] {
+            background: transparent;
+            border: none;
+        }
+
+        /* 空状态 */
+        .empty-content {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-content i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(4, 1fr);
+                padding: 15px;
+                gap: 10px;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .text-content,
+            .image-content,
+            .video-content,
+            .quote-content,
+            .article-content,
+            .button-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- 页面头部 -->
+        <div class="page-header">
+            <h1>{{ page.title }}</h1>
+            {% if page.description %}
+            <p class="description">{{ page.description }}</p>
+            {% endif %}
+        </div>
+
+        <!-- 网格内容 -->
+        <div id="gridContainer" class="grid-container">
+            <!-- 内容将通过 JavaScript 动态加载 -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 加载网格布局
+        async function loadGridLayout() {
+            try {
+                const response = await fetch(`/api/dynamic-pages/{{ page.slug }}/blocks`);
+                const blocks = await response.json();
+
+                const container = document.getElementById('gridContainer');
+
+                if (blocks.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-content col-12">
+                            <i class="fas fa-inbox"></i>
+                            <h3>暂无内容</h3>
+                            <p>这个页面还没有任何内容</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                blocks.forEach(block => {
+                    const element = renderGridElement(block);
+                    container.appendChild(element);
+                });
+
+            } catch (error) {
+                console.error('加载页面内容失败:', error);
+                document.getElementById('gridContainer').innerHTML = `
+                    <div class="alert alert-danger col-12">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        加载页面内容失败，请刷新页面重试
+                    </div>
+                `;
+            }
+        }
+
+        // 渲染网格元素
+        function renderGridElement(block) {
+            const content = block.content || {};
+            const style = block.style || {};
+
+            const div = document.createElement('div');
+            div.className = `grid-item`;
+            div.dataset.type = block.block_type;
+
+            // 应用样式
+            if (style.gridColumn) {
+                div.style.gridColumn = style.gridColumn;
+            }
+            if (style.gridRow) {
+                div.style.gridRow = style.gridRow;
+            }
+            if (style.background) {
+                div.style.background = style.background;
+            }
+            if (style.color) {
+                div.style.color = style.color;
+            }
+            if (style.padding) {
+                div.style.padding = style.padding;
+            }
+
+            // 渲染内容
+            div.innerHTML = renderElementContent(block);
+
+            return div;
+        }
+
+        // 渲染元素内容
+        function renderElementContent(block) {
+            const content = block.content || {};
+
+            switch (block.block_type) {
+                case 'text':
+                    return `
+                        <div class="text-content">
+                            ${content.html || '<p>暂无内容</p>'}
+                        </div>
+                    `;
+
+                case 'image':
+                    return `
+                        <div class="image-content">
+                            ${content.url ? `<img src="${content.url}" alt="${content.alt || ''}">` : '<p class="text-muted">暂无图片</p>'}
+                            ${content.alt ? `<div class="caption">${content.alt}</div>` : ''}
+                        </div>
+                    `;
+
+                case 'video':
+                    return `
+                        <div class="video-content">
+                            ${content.url ? `<video controls><source src="${content.url}">您的浏览器不支持视频播放</video>` : '<p class="text-muted">暂无视频</p>'}
+                        </div>
+                    `;
+
+                case 'quote':
+                    return `
+                        <div class="quote-content">
+                            <blockquote>
+                                <p>${content.text || '暂无引用内容'}</p>
+                                ${content.author ? `<footer>- ${content.author}</footer>` : ''}
+                            </blockquote>
+                        </div>
+                    `;
+
+                case 'article':
+                    return `
+                        <div class="article-content">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-newspaper me-2"></i>文章引用</h5>
+                                    <p class="text-muted">文章ID: ${content.articleId || '未选择'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                case 'button':
+                    const btnClass = `btn-${content.style || 'primary'}-custom`;
+                    return `
+                        <div class="button-content">
+                            <a href="${content.link || '#'}" class="custom-btn ${btnClass}">
+                                ${content.text || '按钮'}
+                            </a>
+                        </div>
+                    `;
+
+                case 'spacer':
+                    const height = content.height || '50';
+                    return `
+                        <div style="height: ${height}px;"></div>
+                    `;
+
+                default:
+                    return `<div class="p-3">未知类型: ${block.block_type}</div>`;
+            }
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', loadGridLayout);
+    </script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %} {% if article %}编辑文章{% else %}新建文章{% endif %} {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="articleForm">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">文章标题 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg" name="title"
+                               value="{{ article.title if article else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">文章摘要</label>
+                        <textarea class="form-control" name="excerpt" rows="3"
+                                  placeholder="请输入文章摘要">{{ article.excerpt if article else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-image me-2"></i>封面图片
+                            <span class="badge bg-info ms-2">推荐</span>
+                        </label>
+                        <input type="hidden" name="cover_image" id="coverImageInput" value="{{ article.cover_image if article else '' }}">
+                        <div class="cover-image-selector">
+                            <!-- 当前封面图片预览 -->
+                            {% if article and article.cover_image %}
+                            <div class="current-cover mb-3" id="currentCover">
+                                <img src="{% if article.cover_image.startswith('http') %}{{ article.cover_image }}{% else %}/static/{{ article.cover_image }}{% endif %}" alt="当前封面" class="img-thumbnail" style="max-height: 200px;">
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCoverImage()">
+                                        <i class="fas fa-times me-1"></i>移除封面
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- 选择按钮 -->
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-primary" onclick="showCoverImagePicker()">
+                                    <i class="fas fa-images me-2"></i>从图片库选择
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="uploadNewCoverImage()">
+                                    <i class="fas fa-upload me-2"></i>上传新封面
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">
+                            封面图片将在文章列表和首页以缩略图形式显示，建议尺寸 1200×630 像素
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">文章内容 <span class="text-danger">*</span></label>
+                        <div id="editor" style="height: 400px;">
+                            {{ article.content|safe if article else '' }}
+                        </div>
+                        <input type="hidden" name="content" id="contentInput">
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-lightbulb me-2"></i>图片使用建议</h6>
+                            <div class="small text-muted">
+                                <p class="mb-2"><strong>✅ 推荐做法：</strong></p>
+                                <ul class="mb-2">
+                                    <li>大图片上传到"图片管理"</li>
+                                    <li>文章中插入图片链接</li>
+                                    <li>Base64图片 < 500KB</li>
+                                    <li>文章总图片 < 2MB</li>
+                                </ul>
+                                <p class="mb-0"><strong>❌ 避免：</strong></p>
+                                <ul class="mb-0">
+                                    <li>直接粘贴大图片</li>
+                                    <li>多个Base64大图</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">发布设置</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">状态</label>
+                                <select class="form-select" name="status">
+                                    <option value="published" {% if not article or article.status == 'published' %}selected{% endif %}>立即发布</option>
+                                    <option value="draft" {% if article and article.status == 'draft' %}selected{% endif %}>保存为草稿</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">分类</label>
+                                <input type="text" class="form-control" name="category"
+                                       value="{{ article.category if article else '' }}"
+                                       placeholder="例如：技术、教程、新闻">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">标签</label>
+                                <input type="text" class="form-control" name="tags"
+                                       value="{{ article.tags if article else '' }}"
+                                       placeholder="多个标签用逗号分隔">
+                                <small class="form-text text-muted">例如：Python, Flask, Web开发</small>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>保存文章
+                                </button>
+                                <a href="{{ url_for('admin_articles') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>返回列表
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 封面图片相关函数 - 移到全局作用域
+function showCoverImagePicker() {
+    console.log('✅ showCoverImagePicker 被调用');
+    // 从API获取所有图片
+    fetch('/api/images')
+        .then(response => response.json())
+        .then(images => {
+            showImagePickerModal(images);
+        })
+        .catch(error => {
+            console.error('Error fetching images:', error);
+            alert('加载图片失败');
+        });
+}
+
+function showImagePickerModal(images) {
+    console.log('✅ showImagePickerModal 被调用，图片数量:', images.length);
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">选择封面图片</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row" id="imagePickerGrid">
+                        ${images.map(img => `
+                            <div class="col-md-3 mb-3">
+                                <div class="card ${img.filepath === document.getElementById('coverImageInput').value ? 'border-primary' : ''} selectable-image"
+                                     data-url="/static/${img.filepath}"
+                                     style="cursor: pointer;">
+                                    <img src="/static/${img.filepath}" class="card-img-top" alt="${img.title}" style="height: 150px; object-fit: cover;">
+                                    <div class="card-body p-2">
+                                        <p class="card-title small mb-0" title="${img.title}">${img.title.substring(0, 15)}${img.title.length > 15 ? '...' : ''}</p>
+                                    </div>
+                                    ${img.filepath === document.getElementById('coverImageInput').value ? '<div class="selected-badge"><i class="fas fa-check-circle text-primary"></i></div>' : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 添加选择逻辑
+    modal.addEventListener('click', function(e) {
+        const card = e.target.closest('.selectable-image');
+        if (card) {
+            const url = card.dataset.url;
+            console.log('✅ 选择了图片:', url);
+            console.log('✅ 准备调用 setCoverImage');
+            try {
+                setCoverImage(url);
+                console.log('✅ setCoverImage 调用完成');
+                console.log('✅ 准备关闭模态框');
+                // 延迟关闭模态框，让 setCoverImage 完成
+                setTimeout(function() {
+                    bsModal.hide();
+                }, 100);
+                console.log('✅ 模态框关闭指令已发送');
+            } catch (error) {
+                console.error('❌ 选择图片时出错:', error);
+                alert('选择图片时出错: ' + error.message);
+            }
+        }
+    });
+
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+
+    modal.addEventListener('hidden.bs.modal', function() {
+        modal.remove();
+    });
+}
+
+function setCoverImage(url) {
+    console.log('✅ setCoverImage 被调用:', url);
+    const input = document.getElementById('coverImageInput');
+    console.log('✅ 获取到 input 元素:', input);
+
+    let saveValue;
+    let displayUrl;
+
+    // 检查URL类型并相应处理
+    if (url.startsWith('data:image/')) {
+        // Base64数据URL - 直接保存
+        saveValue = url;
+        displayUrl = url;
+        console.log('✅ 检测到Base64图片，直接保存');
+    } else if (url.startsWith('/static/')) {
+        // 服务器图片 - 去掉 /static/ 前缀保存
+        saveValue = url.replace('/static/', '');
+        displayUrl = url;
+        console.log('✅ 检测到服务器图片，去掉 /static/ 前缀保存:', saveValue);
+    } else {
+        // 其他情况 - 假设是数据库路径，添加 /static/ 前缀显示
+        saveValue = url;
+        displayUrl = `/static/${url}`;
+        console.log('✅ 检测到数据库路径，添加 /static/ 前缀显示:', displayUrl);
+    }
+
+    input.value = saveValue;
+    console.log('✅ 已保存到数据库:', saveValue.substring(0, 100) + (saveValue.length > 100 ? '...' : ''));
+
+    const selectorDiv = document.querySelector('.cover-image-selector');
+    console.log('✅ 获取到 selectorDiv:', selectorDiv);
+    const currentCoverDiv = document.getElementById('currentCover');
+    console.log('✅ 获取到 currentCoverDiv:', currentCoverDiv);
+
+    if (currentCoverDiv) {
+        console.log('✅ 更新现有封面预览');
+        currentCoverDiv.querySelector('img').src = displayUrl;
+    } else {
+        console.log('✅ 创建新的封面预览');
+        const newCoverDiv = document.createElement('div');
+        newCoverDiv.id = 'currentCover';
+        newCoverDiv.className = 'current-cover mb-3';
+        newCoverDiv.innerHTML = `
+            <img src="${displayUrl}" alt="当前封面" class="img-thumbnail" style="max-height: 200px;">
+            <div class="mt-2">
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCoverImage()">
+                    <i class="fas fa-times me-1"></i>移除封面
+                </button>
+            </div>
+        `;
+        selectorDiv.insertBefore(newCoverDiv, selectorDiv.firstChild);
+    }
+    console.log('✅ setCoverImage 执行完成');
+}
+
+function removeCoverImage() {
+    console.log('✅ removeCoverImage 被调用');
+    document.getElementById('coverImageInput').value = '';
+    const currentCoverDiv = document.getElementById('currentCover');
+    if (currentCoverDiv) {
+        currentCoverDiv.remove();
+    }
+}
+
+function uploadNewCoverImage() {
+    console.log('✅ uploadNewCoverImage 被调用');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            console.log('✅ 文件已选择:', file.name, file.size);
+
+            // 严格限制图片大小为500KB
+            if (file.size > 500 * 1024) {
+                alert('❌ 封面图片过大！\n\n上传新封面的图片必须小于 500KB\n\n💡 建议：\n1. 使用图片编辑工具压缩图片\n2. 或使用"从图片库选择"上传大图片\n3. 或先上传到图片管理，再选择');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                console.log('✅ 图片读取完成，准备设置封面');
+                setCoverImage(e.target.result);
+            };
+            reader.onerror = function(error) {
+                console.error('❌ 图片读取失败:', error);
+                alert('图片读取失败，请重试');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: '开始编写您的文章...\n\n💡 提示：上传大图片请使用图片管理功能，然后在文章中插入图片链接',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ]
+        }
+    });
+
+    // 自定义图片插入处理
+    const toolbar = quill.getModule('toolbar');
+    if (toolbar) {
+        // 覆盖默认的图片处理
+        toolbar.addHandler('image', function() {
+            showImageUploadDialog();
+        });
+    } else {
+        // 如果toolbar模块不可用，尝试直接绑定
+        document.querySelector('.ql-image').addEventListener('click', function(e) {
+            e.preventDefault();
+            showImageUploadDialog();
+        });
+    }
+
+    function showImageUploadDialog() {
+        const dialog = document.createElement('div');
+        dialog.className = 'modal fade';
+        dialog.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">插入图片</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">选择图片文件</label>
+                            <input type="file" class="form-control" id="imageFileInput" accept="image/*">
+                            <small class="form-text text-muted">建议小于 500KB，或先上传到图片管理</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">或输入图片URL</label>
+                            <input type="url" class="form-control" id="imageUrlInput" placeholder="https://example.com/image.jpg">
+                            <small class="form-text text-muted">推荐：使用外部图片链接，避免文章过大</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="insertImageBtn">插入</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+
+        const modal = new bootstrap.Modal(dialog);
+        const insertBtn = dialog.querySelector('#insertImageBtn');
+
+        insertBtn.addEventListener('click', function() {
+            const fileInput = dialog.querySelector('#imageFileInput');
+            const urlInput = dialog.querySelector('#imageUrlInput');
+
+            if (fileInput.files[0]) {
+                const file = fileInput.files[0];
+                if (file.size > 500 * 1024) { // 500KB
+                    alert('图片文件过大！请选择小于 500KB 的图片，或使用图片管理功能上传大图片');
+                    return;
+                }
+                insertBase64Image(file);
+            } else if (urlInput.value) {
+                insertImageByUrl(urlInput.value);
+            }
+
+            modal.hide();
+            dialog.remove();
+        });
+
+        modal.show();
+
+        dialog.addEventListener('hidden.bs.modal', function() {
+            dialog.remove();
+        });
+    }
+
+    function insertBase64Image(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const range = quill.getSelection(true);
+            quill.insertEmbed(range.index, 'image', e.target.result, 'user');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function insertImageByUrl(url) {
+        const range = quill.getSelection(true);
+        quill.insertEmbed(range.index, 'image', url, 'user');
+    }
+
+    // 检查文章内容中的图片大小
+    function checkArticleImages() {
+        const content = quill.root.innerHTML;
+        const base64Matches = content.match(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g) || [];
+        let totalSize = 0;
+
+        for (const match of base64Matches) {
+            const base64Data = match.split(',')[1];
+            const decodedSize = base64Data.length * 3 / 4; // 近似解码大小
+            totalSize += decodedSize;
+
+            if (decodedSize > 500 * 1024) { // 500KB
+                alert('⚠️ 检测到过大图片：单个图片超过 500KB\n\n建议：\n1. 使用图片管理功能上传大图片\n2. 在文章中插入图片链接');
+                return false;
+            }
+        }
+
+        if (totalSize > 2 * 1024 * 1024) { // 2MB
+            alert('⚠️ 文章中图片总大小超过 2MB\n\n建议使用外部图片链接以减小文章大小');
+            return false;
+        }
+
+        return true;
+    }
+
+    document.getElementById('articleForm').addEventListener('submit', function(e) {
+        const content = quill.root.innerHTML;
+        document.getElementById('contentInput').value = content;
+
+        if (quill.getText().trim().length === 0) {
+            e.preventDefault();
+            alert('请输入文章内容');
+            return false;
+        }
+
+        if (!checkArticleImages()) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 实时监控图片插入
+    quill.on('text-change', function() {
+        const content = quill.root.innerHTML;
+        const base64Matches = content.match(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g) || [];
+        if (base64Matches.length > 0) {
+            let totalSize = 0;
+            base64Matches.forEach(match => {
+                const base64Data = match.split(',')[1];
+                totalSize += base64Data.length * 3 / 4;
+            });
+
+            if (totalSize > 1024 * 1024) { // 1MB
+                console.warn('文章图片总大小超过1MB，可能影响性能');
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.cover-image-selector {
+    padding: 15px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.current-cover {
+    text-align: center;
+}
+
+.current-cover img {
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+.selectable-image {
+    position: relative;
+    transition: all 0.3s;
+}
+
+.selectable-image:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.selected-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+#imagePickerGrid .card {
+    overflow: hidden;
+}
+
+#imagePickerGrid .card-img-top {
+    transition: transform 0.3s;
+}
+
+#imagePickerGrid .card:hover .card-img-top {
+    transform: scale(1.1);
+}
+</style>
+{% endblock %}
