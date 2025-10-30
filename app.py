@@ -135,10 +135,10 @@ def init_homepage_config():
         default_config = {
             'sections': [
                 {'type': 'hero', 'visible': True, 'order': 0},
-                {'type': 'articles', 'visible': True, 'order': 1, 'title': '最新文章', 'limit': 6},
-                {'type': 'videos', 'visible': True, 'order': 2, 'title': '最新视频', 'limit': 6},
-                {'type': 'images', 'visible': True, 'order': 3, 'title': '最新图片', 'limit': 8},
-                {'type': 'links', 'visible': True, 'order': 4, 'title': '常用链接', 'limit': 8}
+                {'type': 'articles', 'visible': True, 'order': 1, 'title': '最新文章', 'limit': 6, 'selected_ids': []},
+                {'type': 'videos', 'visible': True, 'order': 2, 'title': '最新视频', 'limit': 6, 'selected_ids': []},
+                {'type': 'images', 'visible': True, 'order': 3, 'title': '最新图片', 'limit': 8, 'selected_ids': []},
+                {'type': 'links', 'visible': True, 'order': 4, 'title': '常用链接', 'limit': 8, 'selected_ids': []}
             ],
             'hero': {
                 'title': '欢迎来到AI-CMS',
@@ -171,13 +171,25 @@ def init_homepage_config():
                 'visible': True,
                 'order': max_order + 1,
                 'title': '常用链接',
-                'limit': 8
+                'limit': 8,
+                'selected_ids': []
             })
-
-            config_data['sections'] = sections
             config.set_config(config_data)
             db.session.commit()
-            print("Updated homepage config to include links section")
+
+        # 确保所有 sections 都有 selected_ids 字段
+        config_data = config.get_config()
+        sections = config_data.get('sections', [])
+        sections_updated = False
+
+        for section in sections:
+            if 'selected_ids' not in section:
+                section['selected_ids'] = []
+                sections_updated = True
+
+        if sections_updated:
+            config.set_config(config_data)
+            db.session.commit()
 
 # 初始化菜单项（如果不存在）
 def init_menu_items():
@@ -357,11 +369,13 @@ def index():
         latest_articles = Article.query.filter_by(status='published').order_by(Article.created_at.desc()).limit(6).all()
         latest_videos = Video.query.filter_by(status='published').order_by(Video.created_at.desc()).limit(6).all()
         latest_images = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(6).all()
+        latest_carousel_images = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(5).all()
         latest_links = Link.query.filter_by(status='published', visible=True).order_by(Link.sort_order).limit(8).all()
         return render_template('index.html',
                              articles=latest_articles,
                              videos=latest_videos,
                              images=latest_images,
+                             carousel_images=latest_carousel_images,
                              links=latest_links,
                              hero_config=None,
                              sections=None)
@@ -390,6 +404,20 @@ def index():
 
     # 根据配置获取数据
     data = {}
+    # 获取轮播图片（从配置中读取）
+    carousel_image_ids = config_data.get('carousel_images', [])
+    if carousel_image_ids:
+        # 根据ID获取轮播图片
+        carousel_images = Image.query.filter(
+            Image.id.in_(carousel_image_ids),
+            Image.status=='published'
+        ).all()
+        # 按配置顺序排序
+        data['carousel_images'] = sorted(carousel_images, key=lambda x: carousel_image_ids.index(x.id) if x.id in carousel_image_ids else 999)
+    else:
+        # 如果没有配置，使用最新5张图片作为默认
+        data['carousel_images'] = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(5).all()
+
     for section in sections:
         if not section.get('visible', True):
             continue
@@ -397,14 +425,54 @@ def index():
         section_type = section.get('type')
         limit = section.get('limit', 6)
 
+        # 获取配置的内容ID列表
+        selected_ids = section.get('selected_ids', [])
+
         if section_type == 'articles':
-            data['articles'] = Article.query.filter_by(status='published').order_by(Article.created_at.desc()).limit(limit).all()
+            if selected_ids:
+                # 如果配置了特定文章ID，按配置顺序显示
+                articles = Article.query.filter(
+                    Article.id.in_(selected_ids),
+                    Article.status=='published'
+                ).all()
+                data['articles'] = sorted(articles, key=lambda x: selected_ids.index(x.id) if x.id in selected_ids else 999)
+            else:
+                # 否则显示最新的文章
+                data['articles'] = Article.query.filter_by(status='published').order_by(Article.created_at.desc()).limit(limit).all()
         elif section_type == 'videos':
-            data['videos'] = Video.query.filter_by(status='published').order_by(Video.created_at.desc()).limit(limit).all()
+            if selected_ids:
+                # 如果配置了特定视频ID，按配置顺序显示
+                videos = Video.query.filter(
+                    Video.id.in_(selected_ids),
+                    Video.status=='published'
+                ).all()
+                data['videos'] = sorted(videos, key=lambda x: selected_ids.index(x.id) if x.id in selected_ids else 999)
+            else:
+                # 否则显示最新的视频
+                data['videos'] = Video.query.filter_by(status='published').order_by(Video.created_at.desc()).limit(limit).all()
         elif section_type == 'images':
-            data['images'] = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(limit).all()
+            if selected_ids:
+                # 如果配置了特定图片ID，按配置顺序显示
+                images = Image.query.filter(
+                    Image.id.in_(selected_ids),
+                    Image.status=='published'
+                ).all()
+                data['images'] = sorted(images, key=lambda x: selected_ids.index(x.id) if x.id in selected_ids else 999)
+            else:
+                # 否则显示最新的图片
+                data['images'] = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(limit).all()
         elif section_type == 'links':
-            data['links'] = Link.query.filter_by(status='published').order_by(Link.sort_order).limit(limit).all()
+            if selected_ids:
+                # 如果配置了特定链接ID，按配置顺序显示
+                links = Link.query.filter(
+                    Link.id.in_(selected_ids),
+                    Link.status=='published',
+                    Link.visible==True
+                ).all()
+                data['links'] = sorted(links, key=lambda x: selected_ids.index(x.id) if x.id in selected_ids else 999)
+            else:
+                # 否则显示最新的链接
+                data['links'] = Link.query.filter_by(status='published', visible=True).order_by(Link.sort_order).limit(limit).all()
 
     # 按order排序sections
     sorted_sections = sorted(sections, key=lambda x: x.get('order', 0))
@@ -755,6 +823,89 @@ def admin_image_delete(id):
     flash('图片删除成功', 'success')
     return redirect(url_for('admin_images'))
 
+# ========== 图片上传API接口 ==========
+
+@app.route('/api/admin/images/upload', methods=['POST'])
+@login_required
+def api_upload_image():
+    """API接口 - 上传图片"""
+    try:
+        # 检查是否有文件
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        if file:
+            # 验证文件扩展名
+            if not allowed_file(file.filename, 'images'):
+                return jsonify({'error': 'Unsupported file format'}), 400
+
+            # 检查文件大小
+            file.seek(0, os.SEEK_END)
+            file_size = file.tell()
+            file.seek(0)
+
+            if file_size > app.config['MAX_CONTENT_LENGTH']:
+                max_size_mb = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+                return jsonify({'error': f'File too large. Max size: {max_size_mb}MB'}), 400
+
+            try:
+                filename = secure_filename(file.filename)
+                unique_filename = f"{uuid.uuid4()}_{filename}"
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'images', unique_filename)
+                file.save(file_path)
+
+                # 验证文件类型
+                if not validate_file_type(file_path, 'image'):
+                    os.remove(file_path)  # 删除无效文件
+                    return jsonify({'error': 'Invalid image file'}), 400
+
+                # 获取图片尺寸
+                try:
+                    from PIL import Image as PILImage
+                    with PILImage.open(file_path) as img:
+                        width, height = img.size
+                except:
+                    width, height = None, None
+
+                # 获取实际文件大小
+                actual_file_size = os.path.getsize(file_path)
+
+                # 获取标题
+                title = request.form.get('title', file.filename)
+
+                # 生成slug
+                slug = generate_slug(title, Image)
+
+                image = Image(
+                    title=title,
+                    slug=slug,
+                    description='',
+                    filename=filename,
+                    filepath=f'uploads/images/{unique_filename}',
+                    file_size=actual_file_size,
+                    mime_type=file.content_type,
+                    width=width,
+                    height=height,
+                    category='',
+                    tags='',
+                    status='published'
+                )
+
+                db.session.add(image)
+                db.session.commit()
+
+                return jsonify(image.to_dict())
+
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ========== API接口 ==========
 
 # 获取文章API
@@ -965,6 +1116,13 @@ def admin_homepage_config():
     config = HomepageConfig.query.filter_by(name='default').first()
     return render_template('admin/homepage_config.html', config=config)
 
+@app.route('/admin/homepage-content')
+@login_required
+def admin_homepage_content():
+    """首页内容管理页面"""
+    config = HomepageConfig.query.filter_by(name='default').first()
+    return render_template('admin/homepage_content.html', config=config)
+
 # ==================== 首页配置API ====================
 
 @app.route('/api/admin/homepage-config', methods=['GET'])
@@ -995,6 +1153,67 @@ def api_update_homepage_config():
         config.enabled = data['enabled']
 
     db.session.commit()
+    return jsonify(config.to_dict())
+
+# ==================== 轮播图管理 ====================
+
+@app.route('/admin/carousel-management')
+@login_required
+def admin_carousel_management():
+    """轮播图管理页面"""
+    config = HomepageConfig.query.filter_by(name='default').first()
+    return render_template('admin/carousel_management.html', config=config)
+
+# ==================== 轮播图管理API ====================
+
+@app.route('/api/admin/carousel-config', methods=['GET'])
+@login_required
+def api_get_carousel_config():
+    """获取轮播图配置"""
+    config = HomepageConfig.query.filter_by(name='default').first()
+    if not config:
+        return jsonify({'error': 'Config not found'}), 404
+
+    config_data = config.get_config()
+    carousel_image_ids = config_data.get('carousel_images', [])
+
+    # 获取轮播图详情
+    carousel_images = []
+    if carousel_image_ids:
+        images = Image.query.filter(
+            Image.id.in_(carousel_image_ids),
+            Image.status=='published'
+        ).all()
+        carousel_images = sorted([img.to_dict() for img in images],
+                                 key=lambda x: carousel_image_ids.index(x['id']) if x['id'] in carousel_image_ids else 999)
+
+    return jsonify({
+        'carousel_images': carousel_images,
+        'carousel_image_ids': carousel_image_ids
+    })
+
+@app.route('/api/admin/carousel-config', methods=['PUT'])
+@login_required
+def api_update_carousel_config():
+    """更新轮播图配置"""
+    config = HomepageConfig.query.filter_by(name='default').first()
+    if not config:
+        # 如果配置不存在，创建一个
+        config = HomepageConfig(name='default', enabled=True)
+        config.set_config({})
+        db.session.add(config)
+
+    data = request.get_json()
+
+    config_data = config.get_config()
+
+    # 更新轮播图ID列表
+    if 'carousel_images' in data:
+        config_data['carousel_images'] = data['carousel_images']
+
+    config.set_config(config_data)
+    db.session.commit()
+
     return jsonify(config.to_dict())
 
 # ==================== 菜单管理 ====================

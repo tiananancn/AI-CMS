@@ -1,0 +1,528 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}{% trans %}首页内容管理{% endtrans %}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4><i class="fas fa-home me-2"></i>{% trans %}首页内容管理{% endtrans %}</h4>
+            <button type="button" class="btn btn-primary" onclick="saveConfig()">
+                <i class="fas fa-save me-2"></i>{% trans %}保存配置{% endtrans %}
+            </button>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            {% trans %}可以选择特定的文章、图片、视频和链接在首页显示。未选择的内容将不会在首页显示。{% endtrans %}
+        </div>
+
+        <!-- 文章选择 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-newspaper me-2"></i>{% trans %}文章区域{% endtrans %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans %}选择要显示的文章{% endtrans %}</h6>
+                        <input type="text" class="form-control form-control-sm mb-3" placeholder="{% trans %}搜索文章...{% endtrans %}"
+                               id="articleSearch" oninput="filterArticles(this.value)">
+                        <div id="articleList" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                            <!-- 文章列表将在这里动态生成 -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans %}已选择的文章{% endtrans %}</h6>
+                        <div id="selectedArticles" class="border rounded p-3" style="min-height: 300px;">
+                            <!-- 已选择的文章将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 视频选择 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-video me-2"></i>{% trans %}视频区域{% endtrans %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans %}选择要显示的视频{% endtrans %}</h6>
+                        <input type="text" class="form-control form-control-sm mb-3" placeholder="{% trans %}搜索视频...{% endtrans %}"
+                               id="videoSearch" oninput="filterVideos(this.value)">
+                        <div id="videoList" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                            <!-- 视频列表将在这里动态生成 -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans %}已选择的视频{% endtrans %}</h6>
+                        <div id="selectedVideos" class="border rounded p-3" style="min-height: 300px;">
+                            <!-- 已选择的视频将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图片选择 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-images me-2"></i>{% trans %}图片区域{% endtrans %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans %}选择要显示的图片{% endtrans %}</h6>
+                        <input type="text" class="form-control form-control-sm mb-3" placeholder="{% trans %}搜索图片...{% endtrans %}"
+                               id="imageSearch" oninput="filterImages(this.value)">
+                        <div id="imageList" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                            <!-- 图片列表将在这里动态生成 -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans %}已选择的图片{% endtrans %}</h6>
+                        <div id="selectedImages" class="border rounded p-3" style="min-height: 300px;">
+                            <!-- 已选择的图片将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 链接选择 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-link me-2"></i>{% trans %}链接区域{% endtrans %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans %}选择要显示的链接{% endtrans %}</h6>
+                        <input type="text" class="form-control form-control-sm mb-3" placeholder="{% trans %}搜索链接...{% endtrans %}"
+                               id="linkSearch" oninput="filterLinks(this.value)">
+                        <div id="linkList" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                            <!-- 链接列表将在这里动态生成 -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans %}已选择的链接{% endtrans %}</h6>
+                        <div id="selectedLinks" class="border rounded p-3" style="min-height: 300px;">
+                            <!-- 已选择的链接将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    // 数据存储
+    let allArticles = [];
+    let allVideos = [];
+    let allImages = [];
+    let allLinks = [];
+
+    let selectedArticles = [];
+    let selectedVideos = [];
+    let selectedImages = [];
+    let selectedLinks = [];
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await loadAllContent();
+            await loadCurrentConfig();
+        } catch (error) {
+            console.error('Error initializing:', error);
+            alert('页面加载失败，请刷新重试！');
+        }
+    });
+
+    // 加载所有内容
+    async function loadAllContent() {
+        try {
+            // 加载文章
+            const articlesResponse = await fetch('/api/articles');
+            if (!articlesResponse.ok) {
+                throw new Error(`加载文章失败: ${articlesResponse.status}`);
+            }
+            const articlesData = await articlesResponse.json();
+            allArticles = Array.isArray(articlesData) ? articlesData : articlesData.data || [];
+
+            // 加载视频
+            const videosResponse = await fetch('/api/videos');
+            if (!videosResponse.ok) {
+                throw new Error(`加载视频失败: ${videosResponse.status}`);
+            }
+            const videosData = await videosResponse.json();
+            allVideos = Array.isArray(videosData) ? videosData : videosData.data || [];
+
+            // 加载图片
+            const imagesResponse = await fetch('/api/images');
+            if (!imagesResponse.ok) {
+                throw new Error(`加载图片失败: ${imagesResponse.status}`);
+            }
+            const imagesData = await imagesResponse.json();
+            allImages = Array.isArray(imagesData) ? imagesData : imagesData.data || [];
+
+            // 加载链接
+            const linksResponse = await fetch('/api/admin/links');
+            if (!linksResponse.ok) {
+                throw new Error(`加载链接失败: ${linksResponse.status}`);
+            }
+            const linksData = await linksResponse.json();
+            allLinks = Array.isArray(linksData) ? linksData : linksData.data || [];
+
+            renderLists();
+            renderSelectedLists();
+            initSortable();
+        } catch (error) {
+            console.error('Error loading content:', error);
+            alert('加载内容失败！' + error.message);
+            throw error; // 重新抛出错误，让上层处理
+        }
+    }
+
+    // 加载当前配置
+    async function loadCurrentConfig() {
+        try {
+            const response = await fetch('/api/admin/homepage-config');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const config = await response.json();
+
+            const sections = config.config.sections || [];
+            sections.forEach(section => {
+                const selectedIds = section.selected_ids || [];
+                if (section.type === 'articles') {
+                    selectedArticles = allArticles.filter(a => selectedIds.includes(a.id));
+                } else if (section.type === 'videos') {
+                    selectedVideos = allVideos.filter(v => selectedIds.includes(v.id));
+                } else if (section.type === 'images') {
+                    selectedImages = allImages.filter(i => selectedIds.includes(i.id));
+                } else if (section.type === 'links') {
+                    selectedLinks = allLinks.filter(l => selectedIds.includes(l.id));
+                }
+            });
+
+            renderSelectedLists();
+        } catch (error) {
+            console.error('Error loading config:', error);
+            alert('加载配置失败！' + error.message);
+        }
+    }
+
+    // 渲染列表
+    function renderLists() {
+        renderArticleList();
+        renderVideoList();
+        renderImageList();
+        renderLinkList();
+    }
+
+    // 渲染文章列表
+    function renderArticleList(filter = '') {
+        const list = document.getElementById('articleList');
+        const filtered = allArticles.filter(a =>
+            a.title.toLowerCase().includes(filter.toLowerCase()) &&
+            !selectedArticles.some(sa => sa.id === a.id)
+        );
+
+        list.innerHTML = filtered.map(article => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                <span class="text-truncate" style="max-width: 200px;" title="${article.title}">${article.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addArticle(${article.id})">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染已选择的文章
+    function renderSelectedArticles() {
+        const list = document.getElementById('selectedArticles');
+        list.innerHTML = selectedArticles.map((article, index) => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" data-id="${article.id}">
+                <span class="text-truncate" style="max-width: 200px;" title="${article.title}">${article.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeArticle(${article.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染视频列表
+    function renderVideoList(filter = '') {
+        const list = document.getElementById('videoList');
+        const filtered = allVideos.filter(v =>
+            v.title.toLowerCase().includes(filter.toLowerCase()) &&
+            !selectedVideos.some(sv => sv.id === v.id)
+        );
+
+        list.innerHTML = filtered.map(video => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                <span class="text-truncate" style="max-width: 200px;" title="${video.title}">${video.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addVideo(${video.id})">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染已选择的视频
+    function renderSelectedVideos() {
+        const list = document.getElementById('selectedVideos');
+        list.innerHTML = selectedVideos.map((video, index) => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" data-id="${video.id}">
+                <span class="text-truncate" style="max-width: 200px;" title="${video.title}">${video.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeVideo(${video.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染图片列表
+    function renderImageList(filter = '') {
+        const list = document.getElementById('imageList');
+        const filtered = allImages.filter(i =>
+            i.title.toLowerCase().includes(filter.toLowerCase()) &&
+            !selectedImages.some(si => si.id === i.id)
+        );
+
+        list.innerHTML = filtered.map(image => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                <span class="text-truncate" style="max-width: 200px;" title="${image.title}">${image.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addImage(${image.id})">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染已选择的图片
+    function renderSelectedImages() {
+        const list = document.getElementById('selectedImages');
+        list.innerHTML = selectedImages.map((image, index) => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" data-id="${image.id}">
+                <span class="text-truncate" style="max-width: 200px;" title="${image.title}">${image.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage(${image.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染链接列表
+    function renderLinkList(filter = '') {
+        const list = document.getElementById('linkList');
+        const filtered = allLinks.filter(l =>
+            l.title.toLowerCase().includes(filter.toLowerCase()) &&
+            !selectedLinks.some(sl => sl.id === l.id)
+        );
+
+        list.innerHTML = filtered.map(link => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                <span class="text-truncate" style="max-width: 200px;" title="${link.title}">${link.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLink(${link.id})">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染已选择的链接
+    function renderSelectedLinks() {
+        const list = document.getElementById('selectedLinks');
+        list.innerHTML = selectedLinks.map((link, index) => `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" data-id="${link.id}">
+                <span class="text-truncate" style="max-width: 200px;" title="${link.title}">${link.title}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeLink(${link.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 渲染所有已选择的列表
+    function renderSelectedLists() {
+        renderSelectedArticles();
+        renderSelectedVideos();
+        renderSelectedImages();
+        renderSelectedLinks();
+    }
+
+    // 添加文章
+    function addArticle(id) {
+        const article = allArticles.find(a => a.id === id);
+        if (article && !selectedArticles.some(sa => sa.id === id)) {
+            selectedArticles.push(article);
+            renderArticleList();
+            renderSelectedArticles();
+        }
+    }
+
+    // 移除文章
+    function removeArticle(id) {
+        selectedArticles = selectedArticles.filter(a => a.id !== id);
+        renderArticleList();
+        renderSelectedArticles();
+    }
+
+    // 添加视频
+    function addVideo(id) {
+        const video = allVideos.find(v => v.id === id);
+        if (video && !selectedVideos.some(sv => sv.id === id)) {
+            selectedVideos.push(video);
+            renderVideoList();
+            renderSelectedVideos();
+        }
+    }
+
+    // 移除视频
+    function removeVideo(id) {
+        selectedVideos = selectedVideos.filter(v => v.id !== id);
+        renderVideoList();
+        renderSelectedVideos();
+    }
+
+    // 添加图片
+    function addImage(id) {
+        const image = allImages.find(i => i.id === id);
+        if (image && !selectedImages.some(si => si.id === id)) {
+            selectedImages.push(image);
+            renderImageList();
+            renderSelectedImages();
+        }
+    }
+
+    // 移除图片
+    function removeImage(id) {
+        selectedImages = selectedImages.filter(i => i.id !== id);
+        renderImageList();
+        renderSelectedImages();
+    }
+
+    // 添加链接
+    function addLink(id) {
+        const link = allLinks.find(l => l.id === id);
+        if (link && !selectedLinks.some(sl => sl.id === id)) {
+            selectedLinks.push(link);
+            renderLinkList();
+            renderSelectedLinks();
+        }
+    }
+
+    // 移除链接
+    function removeLink(id) {
+        selectedLinks = selectedLinks.filter(l => l.id !== id);
+        renderLinkList();
+        renderSelectedLinks();
+    }
+
+    // 过滤文章
+    function filterArticles(query) {
+        renderArticleList(query);
+    }
+
+    // 过滤视频
+    function filterVideos(query) {
+        renderVideoList(query);
+    }
+
+    // 过滤图片
+    function filterImages(query) {
+        renderImageList(query);
+    }
+
+    // 过滤链接
+    function filterLinks(query) {
+        renderLinkList(query);
+    }
+
+    // 初始化拖拽排序
+    function initSortable() {
+        // 为已选择的列表添加拖拽排序功能
+        new Sortable(document.getElementById('selectedArticles'), {
+            animation: 150,
+            onEnd: function(evt) {
+                const item = selectedArticles.splice(evt.oldIndex, 1)[0];
+                selectedArticles.splice(evt.newIndex, 0, item);
+            }
+        });
+
+        new Sortable(document.getElementById('selectedVideos'), {
+            animation: 150,
+            onEnd: function(evt) {
+                const item = selectedVideos.splice(evt.oldIndex, 1)[0];
+                selectedVideos.splice(evt.newIndex, 0, item);
+            }
+        });
+
+        new Sortable(document.getElementById('selectedImages'), {
+            animation: 150,
+            onEnd: function(evt) {
+                const item = selectedImages.splice(evt.oldIndex, 1)[0];
+                selectedImages.splice(evt.newIndex, 0, item);
+            }
+        });
+
+        new Sortable(document.getElementById('selectedLinks'), {
+            animation: 150,
+            onEnd: function(evt) {
+                const item = selectedLinks.splice(evt.oldIndex, 1)[0];
+                selectedLinks.splice(evt.newIndex, 0, item);
+            }
+        });
+    }
+
+    // 保存配置
+    async function saveConfig() {
+        try {
+            const response = await fetch('/api/admin/homepage-config');
+            const config = await response.json();
+
+            // 更新sections
+            config.config.sections.forEach(section => {
+                if (section.type === 'articles') {
+                    section.selected_ids = selectedArticles.map(a => a.id);
+                } else if (section.type === 'videos') {
+                    section.selected_ids = selectedVideos.map(v => v.id);
+                } else if (section.type === 'images') {
+                    section.selected_ids = selectedImages.map(i => i.id);
+                } else if (section.type === 'links') {
+                    section.selected_ids = selectedLinks.map(l => l.id);
+                }
+            });
+
+            const updateResponse = await fetch('/api/admin/homepage-config', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    config: config.config,
+                    enabled: config.enabled
+                })
+            });
+
+            if (updateResponse.ok) {
+                alert('首页内容配置已保存！');
+            } else {
+                alert('保存失败，请重试！');
+            }
+        } catch (error) {
+            console.error('Error saving config:', error);
+            alert('保存出错，请重试！');
+        }
+    }
+</script>
+{% endblock %}

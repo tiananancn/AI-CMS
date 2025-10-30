@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-10-30 10:38+0800\n"
+"POT-Creation-Date: 2025-10-30 15:36+0800\n"
 "PO-Revision-Date: 2025-10-30 09:07+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -22,50 +22,58 @@ msgstr ""
 msgid "AI-CMS - 智能内容管理系统"
 msgstr "AI-CMS - Intelligent Content Management System"
 
-#: templates/index.html:30
+#: templates/index.html:20 templates/index.html:47
 msgid "欢迎来到AI-CMS"
 msgstr "Welcome to AI-CMS"
 
-#: templates/index.html:31
+#: templates/index.html:21 templates/index.html:48
 msgid "智能内容管理系统，让创作更简单"
 msgstr "Intelligent Content Management System, Making Creation Simpler"
 
-#: templates/index.html:34
+#: templates/index.html:24 templates/index.html:51
 msgid "阅读文章"
 msgstr "Read Articles"
 
-#: templates/index.html:37
+#: templates/index.html:27 templates/index.html:54
 msgid "观看视频"
 msgstr "Watch Videos"
 
-#: templates/index.html:54 templates/index.html:104 templates/index.html:145
-#: templates/index.html:181 templates/index.html:213 templates/index.html:245
+#: templates/index.html:70 templates/index.html:120 templates/index.html:161
+#: templates/index.html:239 templates/index.html:271 templates/index.html:303
 msgid "查看更多"
 msgstr "View More"
 
-#: templates/index.html:91
+#: templates/index.html:107
 msgid "暂无文章"
 msgstr "No Articles Yet"
 
-#: templates/index.html:132
+#: templates/index.html:148
 msgid "暂无视频"
 msgstr "No Videos Yet"
 
-#: templates/index.html:167
+#: templates/index.html:183
 msgid "暂无图片"
 msgstr "No Images Yet"
 
-#: templates/index.html:180
+#: templates/index.html:225 templates/index.html:357
+msgid "暂无链接"
+msgstr "No Links Yet"
+
+#: templates/index.html:238
 msgid "最新文章"
 msgstr "Latest Articles"
 
-#: templates/index.html:212
+#: templates/index.html:270
 msgid "最新视频"
 msgstr "Latest Videos"
 
-#: templates/index.html:244
+#: templates/index.html:302
 msgid "最新图片"
 msgstr "Latest Images"
+
+#: templates/index.html:328
+msgid "常用链接"
+msgstr "Common Links"
 
 #: templates/admin/base.html:6
 msgid "CMS管理后台"
@@ -99,30 +107,272 @@ msgstr "Layout Management"
 msgid "首页配置"
 msgstr "Homepage Configuration"
 
-#: templates/admin/base.html:257
+#: templates/admin/base.html:257 templates/admin/homepage_content.html:3
+#: templates/admin/homepage_content.html:9
+msgid "首页内容管理"
+msgstr "Homepage Content Management"
+
+#: templates/admin/base.html:262 templates/admin/carousel_management.html:3
+#, fuzzy
+msgid "轮播图管理"
+msgstr "Images Management"
+
+#: templates/admin/base.html:267
 msgid "动态页面"
 msgstr "Dynamic Pages"
 
-#: templates/admin/base.html:262 templates/admin/menu_management.html:3
+#: templates/admin/base.html:272 templates/admin/menu_management.html:3
 #: templates/admin/menu_management.html:53
 msgid "菜单管理"
 msgstr "Menu Management"
 
-#: templates/admin/base.html:269
+#: templates/admin/base.html:277 templates/admin/links.html:3
+#: templates/admin/links.html:55
+msgid "链接管理"
+msgstr "Links Management"
+
+#: templates/admin/base.html:284
 msgid "前台首页"
 msgstr "Frontend Homepage"
 
-#: templates/admin/base.html:274
+#: templates/admin/base.html:289
 msgid "退出登录"
 msgstr "Logout"
 
-#: templates/admin/base.html:284
+#: templates/admin/base.html:299
 msgid "管理后台"
 msgstr "Admin Backend"
 
-#: templates/admin/menu_management.html:55
+#: templates/admin/carousel_management.html:9
+#, fuzzy
+msgid "首页轮播图管理"
+msgstr "Images Management"
+
+#: templates/admin/carousel_management.html:11
+#, fuzzy
+msgid "保存更改"
+msgstr "Save All Changes"
+
+#: templates/admin/carousel_management.html:17
+msgid "最多可配置5张轮播图。拖拽图片可以调整显示顺序。"
+msgstr ""
+
+#: templates/admin/carousel_management.html:23
+#, fuzzy
+msgid "当前轮播图"
+msgstr "Images Management"
+
+#: templates/admin/carousel_management.html:29
+msgid "还没有配置轮播图"
+msgstr ""
+
+#: templates/admin/carousel_management.html:37
+#, fuzzy
+msgid "添加轮播图"
+msgstr "Images Management"
+
+#: templates/admin/carousel_management.html:42
+msgid "从图片库选择"
+msgstr ""
+
+#: templates/admin/carousel_management.html:45
+#, fuzzy
+msgid "上传新图片"
+msgstr "Latest Images"
+
+#: templates/admin/carousel_management.html:49
+msgid "建议尺寸：1920×800 像素"
+msgstr ""
+
+#: templates/admin/carousel_management.html:50
+msgid "支持格式：JPG、PNG、GIF、WebP"
+msgstr ""
+
+#: templates/admin/carousel_management.html:58
+msgid "图片库"
+msgstr ""
+
+#: templates/admin/carousel_management.html:61
+#: templates/admin/homepage_content.html:79
+msgid "搜索图片..."
+msgstr ""
+
+#: templates/admin/carousel_management.html:81
+#, fuzzy
+msgid "选择轮播图"
+msgstr "Images Management"
+
+#: templates/admin/carousel_management.html:90
+msgid "取消"
+msgstr ""
+
+#: templates/admin/carousel_management.html:91
+msgid "添加选中图片"
+msgstr ""
+
+#: templates/admin/homepage_content.html:11
+msgid "保存配置"
+msgstr ""
+
+#: templates/admin/homepage_content.html:17
+msgid "可以选择特定的文章、图片、视频和链接在首页显示。未选择的内容将不会在首页显示。"
+msgstr ""
+
+#: templates/admin/homepage_content.html:23
+msgid "文章区域"
+msgstr ""
+
+#: templates/admin/homepage_content.html:28
+msgid "选择要显示的文章"
+msgstr ""
+
+#: templates/admin/homepage_content.html:29
+msgid "搜索文章..."
+msgstr ""
+
+#: templates/admin/homepage_content.html:36
+msgid "已选择的文章"
+msgstr ""
+
+#: templates/admin/homepage_content.html:48
+msgid "视频区域"
+msgstr ""
+
+#: templates/admin/homepage_content.html:53
+msgid "选择要显示的视频"
+msgstr ""
+
+#: templates/admin/homepage_content.html:54
+msgid "搜索视频..."
+msgstr ""
+
+#: templates/admin/homepage_content.html:61
+msgid "已选择的视频"
+msgstr ""
+
+#: templates/admin/homepage_content.html:73
+msgid "图片区域"
+msgstr ""
+
+#: templates/admin/homepage_content.html:78
+msgid "选择要显示的图片"
+msgstr ""
+
+#: templates/admin/homepage_content.html:86
+msgid "已选择的图片"
+msgstr ""
+
+#: templates/admin/homepage_content.html:98
+msgid "链接区域"
+msgstr ""
+
+#: templates/admin/homepage_content.html:103
+msgid "选择要显示的链接"
+msgstr ""
+
+#: templates/admin/homepage_content.html:104
+msgid "搜索链接..."
+msgstr ""
+
+#: templates/admin/homepage_content.html:111
+msgid "已选择的链接"
+msgstr ""
+
+#: templates/admin/links.html:57 templates/admin/menu_management.html:55
 msgid "预览首页"
 msgstr "Preview Homepage"
+
+#: templates/admin/links.html:76
+msgid "链接列表"
+msgstr ""
+
+#: templates/admin/links.html:79
+#, fuzzy
+msgid "拖拽链接调整顺序，勾选控制是否显示"
+msgstr "Drag menu items to reorder, check to control visibility"
+
+#: templates/admin/links.html:87 templates/admin/menu_management.html:85
+msgid "保存所有更改"
+msgstr "Save All Changes"
+
+#: templates/admin/links.html:97
+#, fuzzy
+msgid "添加/编辑链接"
+msgstr "Add/Edit Menu"
+
+#: templates/admin/links.html:104
+msgid "标题"
+msgstr ""
+
+#: templates/admin/links.html:109 templates/admin/menu_management.html:107
+msgid "链接地址"
+msgstr "Link URL"
+
+#: templates/admin/links.html:111
+msgid "例如: https://example.com"
+msgstr ""
+
+#: templates/admin/links.html:115
+msgid "描述"
+msgstr ""
+
+#: templates/admin/links.html:120 templates/admin/menu_management.html:113
+msgid "图标类名"
+msgstr "Icon Class"
+
+#: templates/admin/links.html:122
+#, fuzzy
+msgid "Font Awesome图标类名，例如: fas fa-home"
+msgstr "Font Awesome Icons"
+
+#: templates/admin/links.html:126
+msgid "分类"
+msgstr ""
+
+#: templates/admin/links.html:127
+msgid "例如: 常用链接"
+msgstr ""
+
+#: templates/admin/links.html:131
+msgid "状态"
+msgstr ""
+
+#: templates/admin/links.html:133
+msgid "已发布"
+msgstr ""
+
+#: templates/admin/links.html:134
+msgid "草稿"
+msgstr ""
+
+#: templates/admin/links.html:141
+msgid "在前台显示"
+msgstr ""
+
+#: templates/admin/links.html:147
+msgid "保存链接"
+msgstr ""
+
+#: templates/admin/links.html:150
+#, fuzzy
+msgid "重置"
+msgstr "Reset Form"
+
+#: templates/admin/links.html:159
+msgid "帮助"
+msgstr ""
+
+#: templates/admin/links.html:165
+msgid "拖拽左侧手柄调整链接顺序"
+msgstr ""
+
+#: templates/admin/links.html:169
+msgid "勾选\"在前台显示\"控制链接可见性"
+msgstr ""
+
+#: templates/admin/links.html:173
+msgid "链接会在首页的链接区域显示"
+msgstr ""
 
 #: templates/admin/menu_management.html:74
 msgid "菜单列表"
@@ -131,10 +381,6 @@ msgstr "Menu List"
 #: templates/admin/menu_management.html:77
 msgid "拖拽菜单项调整顺序，勾选控制是否显示"
 msgstr "Drag menu items to reorder, check to control visibility"
-
-#: templates/admin/menu_management.html:85
-msgid "保存所有更改"
-msgstr "Save All Changes"
 
 #: templates/admin/menu_management.html:95
 msgid "添加/编辑菜单"
@@ -148,10 +394,6 @@ msgstr "Menu Name"
 msgid "例如：首页"
 msgstr "e.g., Home"
 
-#: templates/admin/menu_management.html:107
-msgid "链接地址"
-msgstr "Link URL"
-
 #: templates/admin/menu_management.html:108
 msgid "例如：/ 或 /articles"
 msgstr "e.g., / or /articles"
@@ -159,10 +401,6 @@ msgstr "e.g., / or /articles"
 #: templates/admin/menu_management.html:109
 msgid "以 / 开头，或完整URL"
 msgstr "Start with / or use full URL"
-
-#: templates/admin/menu_management.html:113
-msgid "图标类名"
-msgstr "Icon Class"
 
 #: templates/admin/menu_management.html:114
 msgid "例如：fas fa-home"

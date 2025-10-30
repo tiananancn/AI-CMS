@@ -12,6 +12,7 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
 
 ### 🎨 Frontend
 - **Homepage Display**: Show latest articles, videos, images, and links
+- **Configurable Content**: Select specific content to display on homepage
 - **Article System**:
   - Article listing (pagination and category filtering)
   - Article detail pages with rich text content
@@ -54,6 +55,8 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
   - Show/hide control
 - **Menu Management**: Dynamic navigation menu with drag-and-drop ordering
 - **Homepage Configuration**: Customizable homepage layout
+- **Homepage Content Management**: Select and arrange specific content to display on homepage
+- **Carousel Management**: Manage homepage banner images with drag-and-drop sorting
 - **Dynamic Pages**: Drag-and-drop page editor
 - **Multilingual Support**: Built-in language switching between Chinese and English
 
@@ -79,6 +82,11 @@ Complete RESTful API endpoints:
 - `POST /api/admin/links/reorder` - Reorder links
 - `GET /api/menu-items` - Get menu items
 - `GET /api/admin/menu-items` - Get all menu items (admin)
+- `GET /api/admin/homepage-config` - Get homepage configuration
+- `PUT /api/admin/homepage-config` - Update homepage configuration
+- `GET /api/admin/carousel-config` - Get carousel configuration
+- `PUT /api/admin/carousel-config` - Update carousel configuration
+- `POST /api/admin/images/upload` - Upload new image
 
 ## 🚀 Technology Stack
 
@@ -89,6 +97,7 @@ Complete RESTful API endpoints:
 - **Icons**: Font Awesome 6.4.0
 - **Image Processing**: Pillow 10.0.0
 - **Internationalization**: Flask-Babel
+- **Drag-and-Drop**: SortableJS
 
 ## 📦 Installation
 
@@ -129,6 +138,7 @@ cms/
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # English documentation
 ├── README_zh.md               # Chinese documentation
+├── HOMEPAGE_CONTENT_MANAGEMENT.md  # Homepage content management guide
 ├── MULTILANG_README.md        # Multilingual feature guide
 ├── translations/              # Translation files
 │   ├── zh_CN/LC_MESSAGES/     # Chinese translations
@@ -157,6 +167,9 @@ cms/
     │   ├── image_upload.html
     │   ├── menu_management.html
     │   ├── links.html
+    │   ├── homepage_config.html
+    │   ├── homepage_content.html
+    │   └── carousel_management.html
     ├── article_detail.html
     ├── video_detail.html
     ├── image_detail.html
@@ -202,6 +215,27 @@ cms/
 6. Drag and drop links to reorder
 7. Click "Save Link"
 
+### Homepage Content Management
+1. In admin panel, go to "Layout Management" > "Homepage Content Management"
+2. Select content for each section:
+   - **Articles Section**: Search and select articles to display
+   - **Videos Section**: Choose videos to show on homepage
+   - **Images Section**: Pick images for display
+   - **Links Section**: Select links to feature
+3. Use search boxes to filter content
+4. Click "+" to add content to selected list
+5. Click "×" to remove content from selected list
+6. Drag and drop selected items to reorder
+7. Click "Save Configuration" to apply changes
+
+### Carousel Management
+1. In admin panel, go to "Layout Management" > "Carousel Management"
+2. Click "Add Carousel Image"
+3. Choose images from library or upload new ones
+4. Drag and drop to reorder carousel images
+5. Up to 5 images supported
+6. Save changes
+
 ### Language Switching
 - **Frontend**: Click the globe icon in the navigation bar
 - **URL Switch**: Visit `/set_language/en` or `/set_language/zh_CN`
@@ -227,6 +261,18 @@ curl http://localhost:8080/api/images
 ### Get All Links
 ```bash
 curl http://localhost:8080/api/links
+```
+
+### Get Homepage Configuration
+```bash
+curl http://localhost:8080/api/admin/homepage-config
+```
+
+### Update Homepage Configuration
+```bash
+curl -X PUT http://localhost:8080/api/admin/homepage-config \
+  -H "Content-Type: application/json" \
+  -d '{"config": {...}, "enabled": true}'
 ```
 
 ### Switch to English (via URL)
@@ -273,6 +319,8 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Change to desired size
 ## 📝 Development Notes
 
 ### Recent Updates
+- **Homepage Content Management**: Select and arrange specific content to display on homepage with drag-and-drop ordering
+- **Carousel Management**: Manage homepage banner images with sortable interface
 - **Link Management System**: Add, edit, and manage links with icons or images
 - **Homepage Link Section**: Display links in a beautiful card layout
 - **Multilingual Support**: Added Chinese and English switching
@@ -285,6 +333,17 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Change to desired size
 ### Browser Cache Notes
 - Frontend changes may require hard refresh (Ctrl+Shift+R)
 - Use incognito mode during development to avoid cached content
+
+### File Organization
+
+**Admin Templates**:
+- `homepage_content.html` - Homepage content selection interface
+- `carousel_management.html` - Carousel image management
+- `homepage_config.html` - Homepage layout configuration
+
+**Documentation**:
+- `HOMEPAGE_CONTENT_MANAGEMENT.md` - Detailed guide for homepage content management
+- `FEATURE_COMPLETION_SUMMARY.md` - Summary of completed features
 
 ## ⚠️ Important Notes
 
@@ -339,5 +398,6 @@ Built by taa with Flask and modern web technologies.
 **Enjoy using AI-CMS!** 🚀
 
 For more details, see:
+- [`HOMEPAGE_CONTENT_MANAGEMENT.md`](HOMEPAGE_CONTENT_MANAGEMENT.md) - Homepage content management guide
 - [`MULTILANG_README.md`](MULTILANG_README.md) - Multilingual feature guide
 - [`README_zh.md`](README_zh.md) - 中文文档

@@ -3,28 +3,45 @@
 {% block title %}{% trans %}AI-CMS - 智能内容管理系统{% endtrans %}{% endblock %}
 
 {% block content %}
-<!-- Hero区域 -->
-{% if sections and sections|length > 0 and sections[0].type == 'hero' and sections[0].visible != false %}
-{% set hero_section = sections[0] %}
-<section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 0; margin-bottom: 0;">
-    <div class="container text-center">
-        <h1 class="display-4 mb-3 fw-bold">{{ hero_config.title if hero_config else '欢迎来到AI-CMS' }}</h1>
-        <p class="lead mb-4 opacity-90">{{ hero_config.subtitle if hero_config else '智能内容管理系统，让创作更简单' }}</p>
-        {% if not hero_config or hero_config.show_buttons != false %}
-        <div class="d-flex justify-content-center gap-3">
-            <a href="{{ hero_config.button1_link if hero_config else '/articles' }}" class="btn btn-light btn-lg">
-                <i class="fas fa-newspaper me-2"></i>{{ hero_config.button1_text if hero_config else '阅读文章' }}
-            </a>
-            <a href="{{ hero_config.button2_link if hero_config else '/videos' }}" class="btn btn-outline-light btn-lg">
-                <i class="fas fa-video me-2"></i>{{ hero_config.button2_text if hero_config else '观看视频' }}
-            </a>
-        </div>
-        {% endif %}
+<!-- Hero区域 - 图片轮播 -->
+{% if carousel_images %}
+<div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {% for img in carousel_images %}
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active"{% endif %}></button>
+        {% endfor %}
     </div>
-</section>
+    <div class="carousel-inner">
+        {% for img in carousel_images %}
+        <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <div class="hero-slide" style="background-image: url('{{ url_for('static', filename=img.filepath) }}');">
+                <div class="hero-overlay">
+                    <div class="container text-center text-white">
+                        <h1 class="display-4 mb-3 fw-bold">{% trans %}欢迎来到AI-CMS{% endtrans %}</h1>
+                        <p class="lead mb-4 opacity-90">{% trans %}智能内容管理系统，让创作更简单{% endtrans %}</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/articles" class="btn btn-light btn-lg">
+                                <i class="fas fa-newspaper me-2"></i>{% trans %}阅读文章{% endtrans %}
+                            </a>
+                            <a href="/videos" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-video me-2"></i>{% trans %}观看视频{% endtrans %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</div>
 {% else %}
-{% if not sections %}
-<!-- 默认Hero区域（如果没有配置） -->
+<!-- 默认Hero区域（如果没有图片） -->
 <section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 0; margin-bottom: 0;">
     <div class="container text-center">
         <h1 class="display-4 mb-3 fw-bold">{% trans %}欢迎来到AI-CMS{% endtrans %}</h1>
@@ -39,7 +56,6 @@
         </div>
     </div>
 </section>
-{% endif %}
 {% endif %}
 
 <!-- 动态内容区域 -->
