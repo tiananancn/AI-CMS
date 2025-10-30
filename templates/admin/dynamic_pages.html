@@ -41,13 +41,9 @@
                             <td>{{ page.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('admin_dynamic_page_grid_editor', id=page.id) }}"
-                                       class="btn btn-primary" title="网格编辑器">
-                                        <i class="fas fa-th-large"></i> 网格
-                                    </a>
                                     <a href="{{ url_for('admin_dynamic_page_editor', id=page.id) }}"
-                                       class="btn btn-outline-primary" title="拖拽编辑">
-                                        <i class="fas fa-edit"></i> 拖拽
+                                       class="btn btn-primary" title="网格编辑器">
+                                        <i class="fas fa-th-large"></i> 编辑
                                     </a>
                                     <a href="{{ url_for('admin_dynamic_page_edit', id=page.id) }}"
                                        class="btn btn-outline-secondary" title="编辑设置">

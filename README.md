@@ -6,7 +6,7 @@
 [![Flask](https://img.shields.io/badge/Flask-3.0.0-lightgrey.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A lightweight yet powerful Content Management System (CMS) built with Flask, featuring article, video, and image management with a beautiful admin interface and flexible frontend display.
+A lightweight yet powerful Content Management System (CMS) built with Flask, featuring article, video, and image management with a beautiful admin interface, flexible frontend display, advanced drag-and-drop page editor with library integration and cell merging capabilities.
 
 ## ✨ Features
 
@@ -57,7 +57,19 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
 - **Homepage Configuration**: Customizable homepage layout
 - **Homepage Content Management**: Select and arrange specific content to display on homepage
 - **Carousel Management**: Manage homepage banner images with drag-and-drop sorting
-- **Dynamic Pages**: Drag-and-drop page editor
+- **Dynamic Pages**: Advanced drag-and-drop page editor with:
+  - **Grid Layout Editor**: Visual grid-based page builder
+  - **9 Element Types**: Text, Image, Video, Quote, Button, Divider, Gallery, Icon, Card
+  - **Library Integration**: Select content directly from existing libraries
+    - Select images from image library
+    - Select videos from video library
+    - Select multiple images for galleries
+    - Reference articles in text elements
+  - **Cell Merging**: Merge and unmerge grid cells for flexible layouts
+    - Select multiple cells (Ctrl/Cmd + click)
+    - Merge cells into larger regions
+    - Visual feedback with size indicators
+    - Automatic data persistence
 - **Multilingual Support**: Built-in language switching between Chinese and English
 
 ### 🌍 Multilingual Support
@@ -87,6 +99,8 @@ Complete RESTful API endpoints:
 - `GET /api/admin/carousel-config` - Get carousel configuration
 - `PUT /api/admin/carousel-config` - Update carousel configuration
 - `POST /api/admin/images/upload` - Upload new image
+- `GET /api/admin/pages/<id>/grid-layout` - Get grid layout with merged cells
+- `POST /api/admin/pages/<id>/grid-layout` - Save grid layout with merged cells
 
 ## 🚀 Technology Stack
 
@@ -140,6 +154,8 @@ cms/
 ├── README_zh.md               # Chinese documentation
 ├── HOMEPAGE_CONTENT_MANAGEMENT.md  # Homepage content management guide
 ├── MULTILANG_README.md        # Multilingual feature guide
+├── GRID_EDITOR_LIBRARY_INTEGRATION.md  # Grid editor library integration guide
+├── CELL_MERGE_FEATURE.md      # Cell merging feature guide
 ├── translations/              # Translation files
 │   ├── zh_CN/LC_MESSAGES/     # Chinese translations
 │   │   ├── messages.po
@@ -169,13 +185,16 @@ cms/
     │   ├── links.html
     │   ├── homepage_config.html
     │   ├── homepage_content.html
-    │   └── carousel_management.html
+    │   ├── carousel_management.html
+    │   └── dynamic_page_editor.html  # Grid editor with library integration & cell merging
     ├── article_detail.html
     ├── video_detail.html
     ├── image_detail.html
     ├── articles_list.html
     ├── videos_list.html
-    └── images_list.html
+    ├── images_list.html
+    ├── dynamic_page.html
+    └── grid_page_display.html
 ```
 
 ## 📖 Usage Guide
@@ -236,6 +255,23 @@ cms/
 5. Up to 5 images supported
 6. Save changes
 
+### Dynamic Page Editor (Grid Layout)
+1. In admin panel, go to "Dynamic Pages"
+2. Click "Edit" on any page or create a new one
+3. Use the grid editor to build your page:
+   - **Add Elements**: Drag elements from the palette to the grid
+   - **Library Integration**:
+     - For **Images**: Click "Select from Library" to choose from existing images
+     - For **Videos**: Click "Select from Video Library" to choose from existing videos
+     - For **Galleries**: Click "Select Multiple Images" to choose multiple images
+     - For **Text**: Click "Reference Article" to insert existing articles
+   - **Cell Merging**:
+     - Select cells by clicking (use Ctrl/Cmd for multi-select)
+     - Click "Merge Cells" to combine selected cells
+     - Click "Unmerge Cells" to split merged cells back
+     - Visual feedback shows selected cells and merge sizes
+4. Save your page
+
 ### Language Switching
 - **Frontend**: Click the globe icon in the navigation bar
 - **URL Switch**: Visit `/set_language/en` or `/set_language/zh_CN`
@@ -273,6 +309,18 @@ curl http://localhost:8080/api/admin/homepage-config
 curl -X PUT http://localhost:8080/api/admin/homepage-config \
   -H "Content-Type: application/json" \
   -d '{"config": {...}, "enabled": true}'
+```
+
+### Get Grid Layout with Merged Cells
+```bash
+curl http://localhost:8080/api/admin/pages/1/grid-layout
+```
+
+### Save Grid Layout with Merged Cells
+```bash
+curl -X POST http://localhost:8080/api/admin/pages/1/grid-layout \
+  -H "Content-Type: application/json" \
+  -d '{"grid": {...}, "mergedCells": {...}}'
 ```
 
 ### Switch to English (via URL)
@@ -319,6 +367,17 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Change to desired size
 ## 📝 Development Notes
 
 ### Recent Updates
+- **Grid Editor Library Integration**: Select content directly from existing libraries when creating pages
+  - Select images from image library for Image elements
+  - Select videos from video library for Video elements
+  - Select multiple images from library for Gallery elements
+  - Reference articles in Text elements
+- **Cell Merging Feature**: Merge and unmerge grid cells for flexible layouts
+  - Multi-select cells with Ctrl/Cmd + click
+  - Merge rectangular selections into larger cells
+  - Visual feedback with selection indicators
+  - Size indicators on merged cells (e.g., 2x2)
+  - Persistent merge state across saves
 - **Homepage Content Management**: Select and arrange specific content to display on homepage with drag-and-drop ordering
 - **Carousel Management**: Manage homepage banner images with sortable interface
 - **Link Management System**: Add, edit, and manage links with icons or images
@@ -340,9 +399,13 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Change to desired size
 - `homepage_content.html` - Homepage content selection interface
 - `carousel_management.html` - Carousel image management
 - `homepage_config.html` - Homepage layout configuration
+- `dynamic_page_editor.html` - Advanced grid editor with library integration and cell merging
 
 **Documentation**:
 - `HOMEPAGE_CONTENT_MANAGEMENT.md` - Detailed guide for homepage content management
+- `GRID_EDITOR_LIBRARY_INTEGRATION.md` - Grid editor library integration guide
+- `CELL_MERGE_FEATURE.md` - Cell merging feature guide
+- `CELL_MERGE_QUICK_GUIDE.md` - Quick guide for cell merging
 - `FEATURE_COMPLETION_SUMMARY.md` - Summary of completed features
 
 ## ⚠️ Important Notes
@@ -400,4 +463,7 @@ Built by taa with Flask and modern web technologies.
 For more details, see:
 - [`HOMEPAGE_CONTENT_MANAGEMENT.md`](HOMEPAGE_CONTENT_MANAGEMENT.md) - Homepage content management guide
 - [`MULTILANG_README.md`](MULTILANG_README.md) - Multilingual feature guide
+- [`GRID_EDITOR_LIBRARY_INTEGRATION.md`](GRID_EDITOR_LIBRARY_INTEGRATION.md) - Grid editor library integration guide
+- [`CELL_MERGE_FEATURE.md`](CELL_MERGE_FEATURE.md) - Cell merging feature guide
+- [`CELL_MERGE_QUICK_GUIDE.md`](CELL_MERGE_QUICK_GUIDE.md) - Cell merging quick guide
 - [`README_zh.md`](README_zh.md) - 中文文档

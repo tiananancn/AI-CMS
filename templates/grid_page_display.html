@@ -7,258 +7,216 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --grid-size: 12;
-            --grid-gap: 15px;
-            --grid-row-height: 100px;
-        }
-
         body {
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
             padding: 20px 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .page-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 40px;
+            padding: 50px 40px;
             text-align: center;
         }
 
         .page-header h1 {
             margin: 0;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
         .page-header .description {
             margin-top: 15px;
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 1.2rem;
+            opacity: 0.95;
         }
 
+        .page-content {
+            padding: 40px;
+        }
+
+        /* 网格容器 - 使用CSS Grid */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(var(--grid-size), 1fr);
-            grid-template-rows: repeat(auto, var(--grid-row-height));
-            gap: var(--grid-gap);
-            padding: 30px;
-            min-height: 400px;
+            gap: 15px;
+            margin-top: 30px;
         }
 
-        .grid-item {
-            border-radius: 8px;
-            overflow: hidden;
+        .grid-cell {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+            min-height: 100px;
         }
 
-        .grid-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* 文本块样式 */
-        .grid-item[data-type="text"] {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            border-left: 4px solid #667eea;
+        .grid-cell:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
-        .text-content {
-            padding: 20px;
+        /* 元素样式 */
+        .element-text {
             line-height: 1.8;
+            font-size: 1.05rem;
         }
 
-        .text-content h1, .text-content h2, .text-content h3 {
+        .element-text h1, .element-text h2, .element-text h3 {
             color: #2c3e50;
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
+            margin-top: 1.2em;
+            margin-bottom: 0.6em;
         }
 
-        .text-content p {
-            margin-bottom: 1em;
-            font-size: 1.1rem;
-        }
-
-        .text-content ul, .text-content ol {
-            margin-bottom: 1em;
-            padding-left: 2em;
-        }
-
-        .text-content blockquote {
-            border-left: 4px solid #667eea;
-            padding-left: 20px;
-            margin: 20px 0;
-            font-style: italic;
-            color: #555;
-        }
-
-        /* 图片块样式 */
-        .grid-item[data-type="image"] {
-            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(32, 201, 151, 0.05) 100%);
-            border-left: 4px solid #28a745;
-        }
-
-        .image-content {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .image-content img {
+        .element-image img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .image-content .caption {
+        .element-image .caption {
             margin-top: 10px;
             color: #6c757d;
             font-style: italic;
+            font-size: 0.9rem;
         }
 
-        /* 视频块样式 */
-        .grid-item[data-type="video"] {
-            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(232, 62, 140, 0.05) 100%);
-            border-left: 4px solid #dc3545;
-        }
-
-        .video-content {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .video-content video {
+        .element-video video {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        /* 引用块样式 */
-        .grid-item[data-type="quote"] {
-            background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(253, 126, 20, 0.05) 100%);
+        .element-quote {
+            background: #f8f9fa;
             border-left: 4px solid #ffc107;
-        }
-
-        .quote-content {
             padding: 20px;
-            position: relative;
-        }
-
-        .quote-content:before {
-            content: '\f10d';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 3rem;
-            color: #ffc107;
-            opacity: 0.2;
-        }
-
-        .quote-content blockquote {
-            margin: 0;
-            font-size: 1.3rem;
-            line-height: 1.6;
-            padding-left: 50px;
-            font-style: italic;
-            color: #2c3e50;
-        }
-
-        .quote-content footer {
-            margin-top: 15px;
-            padding-left: 50px;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-
-        /* 文章引用样式 */
-        .grid-item[data-type="article"] {
-            background: linear-gradient(135deg, rgba(23, 162, 184, 0.05) 0%, rgba(102, 16, 242, 0.05) 100%);
-            border-left: 4px solid #17a2b8;
-        }
-
-        .article-content {
-            padding: 20px;
-        }
-
-        .article-content .card {
-            border: none;
-            background: transparent;
-        }
-
-        /* 按钮样式 */
-        .grid-item[data-type="button"] {
-            background: transparent;
-            border: none;
-        }
-
-        .button-content {
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-        }
-
-        .custom-btn {
-            padding: 12px 30px;
             border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
+            font-style: italic;
+        }
+
+        .element-button {
+            text-align: center;
+        }
+
+        .element-button .btn-custom {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
             transition: all 0.3s ease;
             display: inline-block;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .custom-btn:hover {
+        .element-button .btn-custom:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
             color: white;
         }
 
-        .btn-secondary-custom {
-            background: #6c757d;
-            color: white;
+        .element-divider {
+            text-align: center;
+            padding: 10px 0;
         }
 
-        .btn-success-custom {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-danger-custom {
-            background: #dc3545;
-            color: white;
-        }
-
-        /* 间距块样式 */
-        .grid-item[data-type="spacer"] {
-            background: transparent;
+        .element-divider hr {
             border: none;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #667eea, transparent);
+        }
+
+        .element-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .element-gallery img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .element-gallery img:hover {
+            transform: scale(1.05);
+        }
+
+        .element-icon {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .element-icon i {
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .element-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-top: 4px solid #0dcaf0;
+        }
+
+        .element-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .element-card p {
+            color: #6c757d;
+            line-height: 1.6;
+            margin: 0;
         }
 
         /* 空状态 */
-        .empty-content {
+        .empty-grid {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #6c757d;
         }
 
-        .empty-content i {
+        .empty-grid i {
             font-size: 4rem;
             margin-bottom: 20px;
             opacity: 0.3;
@@ -266,23 +224,8 @@
 
         /* 响应式 */
         @media (max-width: 768px) {
-            .grid-container {
-                grid-template-columns: repeat(4, 1fr);
-                padding: 15px;
-                gap: 10px;
-            }
-
             .page-header h1 {
                 font-size: 2rem;
-            }
-
-            .text-content,
-            .image-content,
-            .video-content,
-            .quote-content,
-            .article-content,
-            .button-content {
-                padding: 15px;
             }
         }
     </style>
@@ -291,22 +234,24 @@
     <div class="page-container">
         <!-- 页面头部 -->
         <div class="page-header">
-            <h1>{{ page.title }}</h1>
+            <h1><i class="fas fa-th-large me-3"></i>{{ page.title }}</h1>
             {% if page.description %}
             <p class="description">{{ page.description }}</p>
             {% endif %}
         </div>
 
-        <!-- 网格内容 -->
-        <div id="gridContainer" class="grid-container">
-            <!-- 内容将通过 JavaScript 动态加载 -->
+        <!-- 页面内容 -->
+        <div class="page-content">
+            <div id="gridContainer" class="grid-container">
+                <!-- 网格内容将通过JavaScript动态加载 -->
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 加载网格布局
-        async function loadGridLayout() {
+        // 加载网格内容
+        async function loadGridContent() {
             try {
                 const response = await fetch(`/api/dynamic-pages/{{ page.slug }}/blocks`);
                 const blocks = await response.json();
@@ -315,135 +260,202 @@
 
                 if (blocks.length === 0) {
                     container.innerHTML = `
-                        <div class="empty-content col-12">
-                            <i class="fas fa-inbox"></i>
-                            <h3>暂无内容</h3>
-                            <p>这个页面还没有任何内容</p>
+                        <div class="empty-grid col-12">
+                            <i class="fas fa-th-large"></i>
+                            <h3>网格为空</h3>
+                            <p>这个页面还没有任何网格内容</p>
                         </div>
                     `;
                     return;
                 }
 
+                // 按sort_order排序
+                blocks.sort((a, b) => a.sort_order - b.sort_order);
+
+                // 计算网格参数
+                let maxRow = 0;
+                let maxCol = 0;
+                const cellMap = new Map();
+                const mergedCells = new Map(); // 存储合并单元格信息
+
                 blocks.forEach(block => {
-                    const element = renderGridElement(block);
-                    container.appendChild(element);
+                    const content = block.content || {};
+                    // 从content中读取行列位置
+                    let row = content.grid_row;
+                    let col = content.grid_col;
+                    let totalCols = content.grid_columns || 3;
+
+                    // 如果没有保存的行列位置，则从sort_order推算
+                    if (row === undefined || col === undefined) {
+                        row = Math.floor(block.sort_order / totalCols);
+                        col = block.sort_order % totalCols;
+                    }
+
+                    maxRow = Math.max(maxRow, row);
+                    maxCol = Math.max(maxCol, col);
+
+                    const cellKey = `${row}-${col}`;
+                    cellMap.set(cellKey, block);
+
+                    // 检查是否是合并单元格
+                    if (content.merged_cell && content.row_span && content.col_span) {
+                        const mergeInfo = {
+                            rowSpan: content.row_span,
+                            colSpan: content.col_span,
+                            masterCell: cellKey
+                        };
+                        mergedCells.set(cellKey, mergeInfo);
+                        maxRow = Math.max(maxRow, row + content.row_span - 1);
+                        maxCol = Math.max(maxCol, col + content.col_span - 1);
+                    }
                 });
 
+                // 设置网格样式
+                const gridColumns = maxCol + 1;
+                container.style.gridTemplateColumns = `repeat(${gridColumns}, 1fr)`;
+
+                // 渲染网格
+                for (let row = 0; row <= maxRow; row++) {
+                    for (let col = 0; col < gridColumns; col++) {
+                        const cellKey = `${row}-${col}`;
+                        const block = cellMap.get(cellKey);
+
+                        // 检查是否是合并单元格的从单元格
+                        let isPartOfMerged = false;
+                        for (const [masterCell, mergeInfo] of mergedCells) {
+                            const [mRow, mCol] = masterCell.split('-').map(Number);
+                            if (row >= mRow && row < mRow + mergeInfo.rowSpan &&
+                                col >= mCol && col < mCol + mergeInfo.colSpan &&
+                                !(row === mRow && col === mCol)) {
+                                isPartOfMerged = true;
+                                break;
+                            }
+                        }
+
+                        if (isPartOfMerged) {
+                            // 跳过渲染从单元格
+                            continue;
+                        }
+
+                        const cellDiv = document.createElement('div');
+                        cellDiv.className = 'grid-cell';
+
+                        // 检查是否是合并单元格的主单元格
+                        if (mergedCells.has(cellKey)) {
+                            const mergeInfo = mergedCells.get(cellKey);
+                            cellDiv.classList.add('merged-cell');
+                            cellDiv.style.gridRow = `${row + 1} / span ${mergeInfo.rowSpan}`;
+                            cellDiv.style.gridColumn = `${col + 1} / span ${mergeInfo.colSpan}`;
+                            cellDiv.style.background = 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+                            cellDiv.style.border = '2px solid #6c757d';
+                        }
+
+                        if (block) {
+                            cellDiv.innerHTML = renderGridItem(block);
+                        } else {
+                            cellDiv.style.visibility = 'hidden';
+                        }
+
+                        container.appendChild(cellDiv);
+                    }
+                }
+
             } catch (error) {
-                console.error('加载页面内容失败:', error);
+                console.error('加载网格内容失败:', error);
                 document.getElementById('gridContainer').innerHTML = `
-                    <div class="alert alert-danger col-12">
+                    <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        加载页面内容失败，请刷新页面重试
+                        加载网格内容失败，请刷新页面重试
                     </div>
                 `;
             }
         }
 
-        // 渲染网格元素
-        function renderGridElement(block) {
-            const content = block.content || {};
-            const style = block.style || {};
-
-            const div = document.createElement('div');
-            div.className = `grid-item`;
-            div.dataset.type = block.block_type;
-
-            // 应用样式
-            if (style.gridColumn) {
-                div.style.gridColumn = style.gridColumn;
-            }
-            if (style.gridRow) {
-                div.style.gridRow = style.gridRow;
-            }
-            if (style.background) {
-                div.style.background = style.background;
-            }
-            if (style.color) {
-                div.style.color = style.color;
-            }
-            if (style.padding) {
-                div.style.padding = style.padding;
-            }
-
-            // 渲染内容
-            div.innerHTML = renderElementContent(block);
-
-            return div;
-        }
-
-        // 渲染元素内容
-        function renderElementContent(block) {
+        // 渲染网格项
+        function renderGridItem(block) {
             const content = block.content || {};
 
             switch (block.block_type) {
                 case 'text':
                     return `
-                        <div class="text-content">
-                            ${content.html || '<p>暂无内容</p>'}
+                        <div class="element-text">
+                            ${content.html || '<p class="text-muted">暂无文本内容</p>'}
                         </div>
                     `;
 
                 case 'image':
                     return `
-                        <div class="image-content">
+                        <div class="element-image">
                             ${content.url ? `<img src="${content.url}" alt="${content.alt || ''}">` : '<p class="text-muted">暂无图片</p>'}
-                            ${content.alt ? `<div class="caption">${content.alt}</div>` : ''}
+                            ${content.alt ? `<div class="caption"><i class="fas fa-info-circle me-1"></i>${content.alt}</div>` : ''}
                         </div>
                     `;
 
                 case 'video':
                     return `
-                        <div class="video-content">
+                        <div class="element-video">
                             ${content.url ? `<video controls><source src="${content.url}">您的浏览器不支持视频播放</video>` : '<p class="text-muted">暂无视频</p>'}
                         </div>
                     `;
 
                 case 'quote':
                     return `
-                        <div class="quote-content">
-                            <blockquote>
-                                <p>${content.text || '暂无引用内容'}</p>
-                                ${content.author ? `<footer>- ${content.author}</footer>` : ''}
-                            </blockquote>
-                        </div>
-                    `;
-
-                case 'article':
-                    return `
-                        <div class="article-content">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5><i class="fas fa-newspaper me-2"></i>文章引用</h5>
-                                    <p class="text-muted">文章ID: ${content.articleId || '未选择'}</p>
-                                </div>
-                            </div>
+                        <div class="element-quote">
+                            <p class="mb-2">${content.text || '暂无引用内容'}</p>
+                            ${content.author ? `<small class="text-muted">- ${content.author}</small>` : ''}
                         </div>
                     `;
 
                 case 'button':
-                    const btnClass = `btn-${content.style || 'primary'}-custom`;
                     return `
-                        <div class="button-content">
-                            <a href="${content.link || '#'}" class="custom-btn ${btnClass}">
+                        <div class="element-button">
+                            <a href="${content.link || '#'}" class="btn-custom" style="background: ${content.bgColor || '#0d6efd'};">
                                 ${content.text || '按钮'}
                             </a>
                         </div>
                     `;
 
-                case 'spacer':
-                    const height = content.height || '50';
+                case 'divider':
                     return `
-                        <div style="height: ${height}px;"></div>
+                        <div class="element-divider">
+                            <hr>
+                        </div>
+                    `;
+
+                case 'gallery':
+                    const imageUrls = content.imageUrls ? content.imageUrls.split('\n').filter(url => url.trim()) : [];
+                    let galleryHtml = '<div class="element-gallery">';
+                    imageUrls.forEach(url => {
+                        galleryHtml += `<img src="${url.trim()}" alt="Gallery Image">`;
+                    });
+                    galleryHtml += '</div>';
+                    if (imageUrls.length === 0) {
+                        galleryHtml = '<p class="text-muted">暂无相册图片</p>';
+                    }
+                    return galleryHtml;
+
+                case 'icon':
+                    return `
+                        <div class="element-icon">
+                            <i class="fas ${content.icon || 'fa-star'} ${content.size || 'fa-2x'}" style="color: ${content.color || '#0d6efd'};"></i>
+                        </div>
+                    `;
+
+                case 'card':
+                    return `
+                        <div class="element-card" style="background: ${content.bgColor || '#ffffff'};">
+                            <h3>${content.title || '卡片标题'}</h3>
+                            <p>${content.content || '卡片内容'}</p>
+                        </div>
                     `;
 
                 default:
-                    return `<div class="p-3">未知类型: ${block.block_type}</div>`;
+                    return `<p class="text-muted">未知元素类型: ${block.block_type}</p>`;
             }
         }
 
         // 页面加载完成后执行
-        document.addEventListener('DOMContentLoaded', loadGridLayout);
+        document.addEventListener('DOMContentLoaded', loadGridContent);
     </script>
 </body>
 </html>

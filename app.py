@@ -1048,13 +1048,6 @@ def admin_dynamic_page_delete(id):
     flash('页面已删除', 'success')
     return redirect(url_for('admin_dynamic_pages'))
 
-@app.route('/admin/dynamic-pages/<int:id>/grid-editor')
-@login_required
-def admin_dynamic_page_grid_editor(id):
-    """网格页面编辑器"""
-    page = DynamicPage.query.get_or_404(id)
-    return render_template('admin/grid_page_editor.html', page=page)
-
 @app.route('/admin/dynamic-pages/<int:id>/editor')
 @login_required
 def admin_dynamic_page_editor(id):
@@ -1069,9 +1062,49 @@ def admin_dynamic_page_editor(id):
 def api_get_grid_layout(page_id):
     """获取页面的网格布局"""
     page = DynamicPage.query.get_or_404(page_id)
+
+    # 获取所有内容块
+    blocks = ContentBlock.query.filter_by(page_id=page_id).order_by(ContentBlock.sort_order).all()
+
+    # 构建cells和mergedCells
+    cells = {}
+    merged_cells = {}
+
+    for block in blocks:
+        content = block.get_content()
+        if content:
+            row = content.get('grid_row', 0)
+            col = content.get('grid_col', 0)
+            cell_key = f"{row}-{col}"
+
+            # 重建元素数据
+            element_data = {
+                'id': f"block_{block.id}",
+                'type': block.block_type,
+                'content': content,
+                'style': block.get_style()
+            }
+
+            cells[cell_key] = element_data
+
+            # 检查是否是合并单元格
+            if content.get('merged_cell', False):
+                merged_cells[cell_key] = {
+                    'rowSpan': content.get('row_span', 1),
+                    'colSpan': content.get('col_span', 1),
+                    'masterCell': cell_key,
+                    'cells': [cell_key]
+                }
+
     return jsonify({
         'page_id': page_id,
-        'elements': page.blocks if hasattr(page, 'blocks') else []
+        'grid': {
+            'columns': 3,
+            'rowHeight': 100,
+            'rows': 3,
+            'cells': cells,
+            'mergedCells': merged_cells
+        }
     })
 
 @app.route('/api/admin/pages/<int:page_id>/grid-layout', methods=['POST'])
@@ -1084,18 +1117,43 @@ def api_save_grid_layout(page_id):
     # 删除旧的布局
     ContentBlock.query.filter_by(page_id=page_id).delete()
 
-    # 保存新布局
-    elements = data.get('elements', [])
-    for i, element in enumerate(elements):
-        block = ContentBlock(
-            page_id=page_id,
-            block_type=element.get('type', 'text'),
-            sort_order=i,
-            visible=True
-        )
-        block.set_content(element.get('content', {}))
-        block.set_style(element.get('style', {}))
-        db.session.add(block)
+    # 保存新布局 - 将网格单元格转换为ContentBlock
+    grid_data = data.get('grid', {})
+    columns = grid_data.get('columns', 3)
+    cells = grid_data.get('cells', {})
+    merged_cells = data.get('mergedCells', {})
+
+    # 转换网格单元格到内容块
+    for cell_key, element_data in cells.items():
+        if '-' in cell_key:
+            row, col = cell_key.split('-')
+            row = int(row)
+            col = int(col)
+            sort_order = row * columns + col
+
+            block = ContentBlock(
+                page_id=page_id,
+                block_type=element_data.get('type', 'text'),
+                sort_order=sort_order,
+                visible=True
+            )
+
+            # 保存内容，并在content中保存行列位置和合并信息
+            content_data = element_data.get('content', {})
+            content_data['grid_row'] = row
+            content_data['grid_col'] = col
+            content_data['grid_columns'] = columns
+
+            # 检查是否是合并单元格的主单元格
+            if cell_key in merged_cells:
+                merge_info = merged_cells[cell_key]
+                content_data['merged_cell'] = True
+                content_data['row_span'] = merge_info.get('rowSpan', 1)
+                content_data['col_span'] = merge_info.get('colSpan', 1)
+
+            block.set_content(content_data)
+            block.set_style(element_data.get('style', {}))
+            db.session.add(block)
 
     db.session.commit()
     return jsonify({'message': '网格布局已保存'})
@@ -1385,6 +1443,13 @@ def api_create_block(page_id):
     db.session.add(block)
     db.session.commit()
 
+    return jsonify(block.to_dict())
+
+@app.route('/api/admin/blocks/<int:block_id>', methods=['GET'])
+@login_required
+def api_get_block(block_id):
+    """获取单个内容块"""
+    block = ContentBlock.query.get_or_404(block_id)
     return jsonify(block.to_dict())
 
 @app.route('/api/admin/blocks/<int:block_id>', methods=['PUT'])

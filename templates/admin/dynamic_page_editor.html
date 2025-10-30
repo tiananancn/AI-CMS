@@ -1,160 +1,579 @@
 {% extends "admin/base.html" %}
 
-{% block page_title %}拖拽式编辑器 - {{ page.title }}{% endblock %}
+{% block page_title %}网格编辑器 - {{ page.title }}{% endblock %}
 
 {% block styles %}
 <style>
+    :root {
+        /* 专业主题色彩系统 */
+        --primary-color: #007acc;
+        --success-color: #4caf50;
+        --warning-color: #ff9800;
+        --danger-color: #f44336;
+        --info-color: #00bcd4;
+        --dark-bg: #1e1e1e;
+        --darker-bg: #151515;
+        --toolbar-bg: #252526;
+        --toolbar-border: #3d3d3d;
+        --text-primary: #d4d4d4;
+        --text-secondary: #9f9f9f;
+        --text-muted: #6a6a6a;
+        --hover-bg: #2a2a2a;
+        --active-bg: #37373d;
+    }
+
     .editor-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
     }
 
-    .toolbar {
-        background: #f8f9fa;
-        padding: 15px;
+    /* ========== 专业工具栏样式 ========== */
+    .professional-toolbar {
+        background: var(--toolbar-bg);
+        border: 1px solid var(--toolbar-border);
         border-radius: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
+        padding: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
         position: sticky;
         top: 20px;
         z-index: 100;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .toolbar .btn-group {
-        margin-right: 10px;
+    .toolbar-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 8px;
+        background: var(--darker-bg);
+        border-radius: 6px;
+        border: 1px solid var(--toolbar-border);
     }
 
-    .content-blocks {
-        min-height: 400px;
-        padding: 20px;
-        background: #fff;
+    .toolbar-label {
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0 6px;
+        border-right: 1px solid var(--toolbar-border);
+    }
+
+    .toolbar-btn {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-primary);
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .toolbar-btn:hover {
+        background: var(--hover-bg);
+        border-color: var(--toolbar-border);
+        color: #fff;
+    }
+
+    .toolbar-btn:active {
+        transform: scale(0.95);
+        background: var(--active-bg);
+    }
+
+    .toolbar-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .toolbar-btn i {
+        font-size: 14px;
+    }
+
+    .toolbar-divider {
+        width: 1px;
+        height: 32px;
+        background: var(--toolbar-border);
+        margin: 0 4px;
+    }
+
+    .toolbar-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .toolbar-dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: var(--toolbar-bg);
+        border: 1px solid var(--toolbar-border);
+        border-radius: 6px;
+        padding: 8px;
+        margin-top: 4px;
+        min-width: 160px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        z-index: 1000;
+    }
+
+    .toolbar-dropdown:hover .toolbar-dropdown-content {
+        display: block;
+    }
+
+    .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+        color: var(--text-primary);
+        font-size: 13px;
+    }
+
+    .dropdown-item:hover {
+        background: var(--hover-bg);
+    }
+
+    /* ========== 元素库 ========== */
+    .element-palette {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+
+    .element-btn {
+        padding: 12px 8px;
+        border: 2px solid var(--toolbar-border);
+        background: var(--darker-bg);
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+    }
+
+    .element-btn:hover {
+        border-color: var(--primary-color);
+        background: var(--hover-bg);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 122, 204, 0.3);
+        color: #fff;
+    }
+
+    .element-btn i {
+        display: block;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    /* ========== 改进的网格画布 ========== */
+    .grid-canvas {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        min-height: 500px;
+        position: relative;
+        transition: all 0.3s ease;
+        overflow: auto;
+        max-height: calc(100vh - 300px);
+    }
+
+    /* Hover时显示网格线 */
+    .grid-canvas:hover {
+        background-image:
+            linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+        background-size: var(--grid-size, 115px) var(--grid-size, 115px);
+    }
+
+    .grid-container {
+        display: grid;
+        gap: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .grid-cell {
+        background: white;
         border: 2px dashed #dee2e6;
         border-radius: 8px;
+        min-height: 100px;
+        position: relative;
+        transition: all 0.3s ease;
+        overflow: visible;
     }
 
-    .content-block {
-        background: #fff;
-        border: 1px solid #dee2e6;
+    .grid-cell:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 122, 204, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .grid-cell.has-element {
+        border-style: solid;
+        border-color: #dee2e6;
+    }
+
+    .grid-cell.drag-over {
+        border-color: var(--primary-color);
+        background: #f0f7ff;
+        transform: scale(1.02);
+    }
+
+    /* ========== 元素类型图标覆盖层 ========== */
+    .element-icon-overlay {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 6px;
-        margin-bottom: 15px;
-        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #333;
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .grid-cell:hover .element-icon-overlay {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .element-icon-overlay.text { color: var(--primary-color); }
+    .element-icon-overlay.image { color: var(--success-color); }
+    .element-icon-overlay.video { color: var(--danger-color); }
+    .element-icon-overlay.quote { color: var(--warning-color); }
+    .element-icon-overlay.button { color: #9c27b0; }
+    .element-icon-overlay.divider { color: #607d8b; }
+    .element-icon-overlay.gallery { color: #e91e63; }
+    .element-icon-overlay.icon { color: #ff9800; }
+    .element-icon-overlay.card { color: var(--info-color); }
+
+    /* ========== 单元格选择 ========== */
+    .grid-cell.selected {
+        border-color: var(--primary-color);
+        background: #e7f3ff;
+        box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.3);
+    }
+
+    .grid-cell.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 20px;
+        height: 20px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 11;
+        animation: selectedPulse 0.3s ease;
+    }
+
+    @keyframes selectedPulse {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    /* ========== 合并单元格样式 ========== */
+    .grid-cell.merged {
+        background: #f8f9fa;
+        border: 2px solid #6c757d;
+        z-index: 5;
+    }
+
+    .grid-cell.merged[data-row-span] {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .merged-cell-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .merged-cell-info {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        z-index: 12;
+    }
+
+    /* ========== 空单元格的占位符 ========== */
+    .cell-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #adb5bd;
+        font-size: 0.85rem;
+        gap: 8px;
         transition: all 0.3s ease;
     }
 
-    .content-block:hover {
-        border-color: #0d6efd;
-        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
-    }
-
-    .content-block.dragging {
+    .cell-placeholder i {
+        font-size: 1.5rem;
         opacity: 0.5;
-        transform: rotate(2deg);
     }
 
-    .block-header {
-        background: #f8f9fa;
-        padding: 10px 15px;
-        border-bottom: 1px solid #dee2e6;
-        border-radius: 6px 6px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .grid-cell.drag-over .cell-placeholder {
+        color: var(--primary-color);
+    }
+
+    /* ========== 元素可拖拽 ========== */
+    .grid-element {
         cursor: move;
     }
 
-    .block-header .block-type {
-        font-weight: 600;
-        color: #495057;
-    }
-
-    .block-header .block-actions {
-        display: flex;
-        gap: 5px;
-    }
-
-    .block-content {
-        padding: 20px;
-    }
-
-    .block-controls {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        display: none;
-        gap: 5px;
-    }
-
-    .content-block:hover .block-controls {
-        display: flex;
-    }
-
-    .ghost {
+    .grid-element.dragging {
         opacity: 0.5;
-        background: #f8f9fa;
+        transform: rotate(2deg) scale(0.95);
     }
 
-    .drag-placeholder {
-        border: 2px dashed #0d6efd !important;
-        background: #f8f9fa;
-        height: 60px;
-        margin-bottom: 15px;
-        border-radius: 6px;
+    .grid-element {
+        width: 100%;
+        height: 100%;
+        padding: 15px;
+        position: relative;
+        animation: elementFadeIn 0.3s ease;
     }
 
-    /* 不同类型块的样式 */
-    .block-type-text {
-        border-left: 4px solid #0d6efd;
+    @keyframes elementFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
-    .block-type-image {
-        border-left: 4px solid #198754;
+    .element-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #dee2e6;
     }
 
-    .block-type-video {
-        border-left: 4px solid #dc3545;
+    .element-type {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
-    .block-type-quote {
-        border-left: 4px solid #ffc107;
+    .element-controls {
+        display: flex;
+        gap: 5px;
+    }
+
+    .element-content {
+        position: relative;
+    }
+
+    /* ========== 元素类型样式 ========== */
+    .element-text {
+        border-left: 4px solid var(--primary-color);
+        background: linear-gradient(to right, rgba(0, 122, 204, 0.05), transparent);
+    }
+
+    .element-image {
+        border-left: 4px solid var(--success-color);
+        background: linear-gradient(to right, rgba(76, 175, 80, 0.05), transparent);
+    }
+
+    .element-video {
+        border-left: 4px solid var(--danger-color);
+        background: linear-gradient(to right, rgba(244, 67, 54, 0.05), transparent);
+    }
+
+    .element-quote {
+        border-left: 4px solid var(--warning-color);
         font-style: italic;
+        background: linear-gradient(to right, rgba(255, 152, 0, 0.05), transparent);
     }
 
-    .block-type-divider {
-        border-left: 4px solid #6c757d;
+    .element-button {
+        border-left: 4px solid #9c27b0;
+        background: linear-gradient(to right, rgba(156, 39, 176, 0.05), transparent);
     }
 
-    .block-type-article {
-        border-left: 4px solid #20c997;
+    .element-divider {
+        border-left: 4px solid #607d8b;
+        background: linear-gradient(to right, rgba(96, 125, 139, 0.05), transparent);
     }
 
-    .empty-state {
+    .element-gallery {
+        border-left: 4px solid #e91e63;
+        background: linear-gradient(to right, rgba(233, 30, 99, 0.05), transparent);
+    }
+
+    .element-icon {
+        border-left: 4px solid #ff9800;
+        background: linear-gradient(to right, rgba(255, 152, 0, 0.05), transparent);
+    }
+
+    .element-card {
+        border-left: 4px solid var(--info-color);
+        background: linear-gradient(to right, rgba(0, 188, 212, 0.05), transparent);
+    }
+
+    /* ========== 元素内容渲染 ========== */
+    .element-preview {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .element-preview img {
+        max-width: 100%;
+        max-height: 150px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .element-preview video {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 4px;
+    }
+
+    /* ========== 空状态 ========== */
+    .empty-grid {
         text-align: center;
         padding: 60px 20px;
         color: #6c757d;
     }
 
-    .empty-state i {
-        font-size: 4rem;
+    .empty-grid i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #adb5bd;
+    }
+
+    .empty-grid h4 {
+        margin-bottom: 10px;
+    }
+
+    /* ========== 编辑模态框 ========== */
+    .modal-xl {
+        max-width: 900px;
+    }
+
+    .form-section {
         margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #dee2e6;
     }
 
-    /* 编辑模式样式 */
-    .editing {
-        background: #fff3cd;
-        border-color: #ffc107;
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
     }
 
-    .editing .block-header {
-        background: #fff3cd;
+    .form-section-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #495057;
+    }
+
+    /* ========== 响应式设计 ========== */
+    @media (max-width: 768px) {
+        .professional-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+
+        .toolbar-group {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .element-palette {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+
+        .grid-canvas {
+            padding: 15px;
+            max-height: calc(100vh - 400px);
+        }
+    }
+
+    /* ========== 加载动画 ========== */
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 122, 204, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ========== 缩放控制 ========== */
+    .grid-zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .zoom-level {
+        min-width: 50px;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 12px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="editor-container">
+    <!-- 页面头部 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1">拖拽式编辑器</h1>
+            <h1 class="h3 mb-1">网格编辑器</h1>
             <p class="text-muted mb-0">{{ page.title }}</p>
         </div>
         <div class="btn-group">
@@ -164,67 +583,210 @@
             <a href="{{ url_for('admin_dynamic_page_edit', id=page.id) }}" class="btn btn-secondary">
                 <i class="fas fa-cog me-2"></i>设置
             </a>
-            <button onclick="savePage()" class="btn btn-success">
-                <i class="fas fa-save me-2"></i>保存页面
+            <button onclick="saveGrid()" class="btn btn-success">
+                <i class="fas fa-save me-2"></i>保存网格
             </button>
         </div>
     </div>
 
-    <!-- 工具栏 -->
-    <div class="toolbar">
-        <div class="d-flex flex-wrap gap-2">
-            <div class="btn-group">
-                <button type="button" class="btn btn-outline-primary" onclick="addBlock('text')">
-                    <i class="fas fa-file-alt me-1"></i>文本
+    <!-- ========== 专业工具栏 ========== -->
+    <div class="professional-toolbar">
+        <!-- 文件工具栏 -->
+        <div class="toolbar-group">
+            <span class="toolbar-label">文件</span>
+            <button class="toolbar-btn" onclick="saveGrid()" title="保存 (Ctrl+S)">
+                <i class="fas fa-save"></i>
+            </button>
+            <button class="toolbar-btn" onclick="previewGrid()" title="预览">
+                <i class="fas fa-eye"></i>
+            </button>
+            <div class="toolbar-divider"></div>
+            <button class="toolbar-btn" onclick="undo()" title="撤销 (Ctrl+Z)">
+                <i class="fas fa-undo"></i>
+            </button>
+            <button class="toolbar-btn" onclick="redo()" title="重做 (Ctrl+Y)">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+
+        <!-- 视图工具栏 -->
+        <div class="toolbar-group">
+            <span class="toolbar-label">视图</span>
+            <button class="toolbar-btn" id="gridLinesBtn" onclick="toggleGridLines()" title="切换网格线">
+                <i class="fas fa-border-all"></i>
+            </button>
+            <button class="toolbar-btn" id="elementIconsBtn" onclick="toggleElementIcons()" title="切换元素图标">
+                <i class="fas fa-layer-group"></i>
+            </button>
+            <div class="toolbar-divider"></div>
+            <div class="grid-zoom-controls">
+                <button class="toolbar-btn" onclick="setGridZoom(75)" title="缩小">
+                    <i class="fas fa-search-minus"></i>
                 </button>
-                <button type="button" class="btn btn-outline-success" onclick="addBlock('image')">
-                    <i class="fas fa-image me-1"></i>图片
-                </button>
-                <button type="button" class="btn btn-outline-danger" onclick="addBlock('video')">
-                    <i class="fas fa-video me-1"></i>视频
-                </button>
-                <button type="button" class="btn btn-outline-warning" onclick="addBlock('quote')">
-                    <i class="fas fa-quote-left me-1"></i>引用
-                </button>
-                <button type="button" class="btn btn-outline-secondary" onclick="addBlock('divider')">
-                    <i class="fas fa-minus me-1"></i>分隔线
-                </button>
-                <button type="button" class="btn btn-outline-info" onclick="addBlock('article')">
-                    <i class="fas fa-newspaper me-1"></i>文章引用
-                </button>
-            </div>
-            <div class="ms-auto">
-                <button type="button" class="btn btn-outline-dark" onclick="loadBlocks()">
-                    <i class="fas fa-sync-alt me-1"></i>刷新
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="toolbar-btn" onclick="setGridZoom(125)" title="放大">
+                    <i class="fas fa-search-plus"></i>
                 </button>
             </div>
         </div>
+
+        <!-- 元素工具栏 -->
+        <div class="toolbar-group">
+            <span class="toolbar-label">元素</span>
+            <button class="element-btn" draggable="true" data-element-type="text" title="文本">
+                <i class="fas fa-font"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="image" title="图片">
+                <i class="fas fa-image"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="video" title="视频">
+                <i class="fas fa-video"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="quote" title="引用">
+                <i class="fas fa-quote-left"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="button" title="按钮">
+                <i class="fas fa-square"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="divider" title="分隔线">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="gallery" title="相册">
+                <i class="fas fa-images"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="icon" title="图标">
+                <i class="fas fa-star"></i>
+            </button>
+            <button class="element-btn" draggable="true" data-element-type="card" title="卡片">
+                <i class="fas fa-credit-card"></i>
+            </button>
+        </div>
+
+        <!-- 布局工具栏 -->
+        <div class="toolbar-group">
+            <span class="toolbar-label">布局</span>
+            <select id="gridColumns" class="form-select form-select-sm" style="width: 80px; background: var(--darker-bg); color: var(--text-primary); border: 1px solid var(--toolbar-border);" title="列数">
+                <option value="1">1列</option>
+                <option value="2">2列</option>
+                <option value="3" selected>3列</option>
+                <option value="4">4列</option>
+                <option value="5">5列</option>
+            </select>
+            <select id="gridRowHeight" class="form-select form-select-sm" style="width: 100px; background: var(--darker-bg); color: var(--text-primary); border: 1px solid var(--toolbar-border);" title="行高">
+                <option value="80">紧凑 80px</option>
+                <option value="100" selected>标准 100px</option>
+                <option value="150">舒适 150px</option>
+                <option value="200">宽松 200px</option>
+                <option value="300">自定义 300px</option>
+            </select>
+            <button class="toolbar-btn" onclick="addRow()" title="添加行">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="toolbar-btn" onclick="removeRow()" title="删除行">
+                <i class="fas fa-minus"></i>
+            </button>
+        </div>
+
+        <!-- 合并工具栏 -->
+        <div class="toolbar-group">
+            <span class="toolbar-label">合并</span>
+            <button class="toolbar-btn" onclick="mergeSelectedCells()" id="mergeBtn" disabled title="合并单元格">
+                <i class="fas fa-compress"></i>
+            </button>
+            <button class="toolbar-btn" onclick="unmergeSelectedCells()" id="unmergeBtn" disabled title="取消合并">
+                <i class="fas fa-expand"></i>
+            </button>
+            <button class="toolbar-btn" onclick="splitCell()" id="splitBtn" disabled title="拆分单元格">
+                <i class="fas fa-columns"></i>
+            </button>
+        </div>
     </div>
 
-    <!-- 拖拽区域 -->
-    <div id="contentBlocks" class="content-blocks">
-        <div class="empty-state">
-            <i class="fas fa-mouse-pointer"></i>
-            <h4>开始创建你的页面</h4>
-            <p>点击上方按钮添加内容块，然后拖拽调整顺序</p>
+    <!-- 网格画布 -->
+    <div class="grid-canvas">
+        <div id="gridContainer" class="grid-container">
+            <!-- 网格单元格将通过JavaScript动态生成 -->
         </div>
     </div>
 </div>
 
-<!-- 编辑模态框 -->
-<div class="modal fade" id="editBlockModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<!-- 编辑元素模态框 -->
+<div class="modal fade" id="editElementModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">编辑内容块</h5>
+                <h5 class="modal-title">编辑元素</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="editBlockContent">
+            <div class="modal-body" id="editElementContent">
                 <!-- 动态加载编辑表单 -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="saveBlockEdit()">保存</button>
+                <button type="button" class="btn btn-primary" onclick="saveElementEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 图片库选择模态框 -->
+<div class="modal fade" id="imageLibraryModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择图片</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="imageLibraryList">
+                    <!-- 图片列表将动态加载 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="applySelectedImages()">应用选择</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 视频库选择模态框 -->
+<div class="modal fade" id="videoLibraryModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择视频</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="videoLibraryList">
+                    <!-- 视频列表将动态加载 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="applySelectedVideo()">应用选择</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 文章列表模态框 -->
+<div class="modal fade" id="articleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择文章</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group" id="articleList">
+                    <!-- 文章列表将动态加载 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="insertArticleToText()">插入到文本</button>
             </div>
         </div>
     </div>
@@ -239,292 +801,935 @@
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
 <script>
-    let currentEditingBlock = null;
-    let sortable = null;
+    // 全局变量
+    let currentEditingElement = null;
+    let gridData = {
+        columns: 3,
+        rowHeight: 100,
+        rows: 3,
+        cells: {}, // { row-col: elementData }
+        mergedCells: {} // { 'row-col': { rowSpan: 2, colSpan: 2, masterCell: 'row-col' } }
+    };
     let quillEditor = null;
+    let selectedCells = []; // 选中的单元格列表
+    let isSelecting = false;
+    let gridHistory = []; // 历史记录用于撤销/重做
+    let historyIndex = -1; // 当前历史记录索引
+    let isGridLinesVisible = false;
+    let isElementIconsVisible = true;
+    let currentZoom = 100;
 
     // 页面ID
     const pageId = {{ page.id }};
 
     // 初始化
     document.addEventListener('DOMContentLoaded', function() {
-        initSortable();
-        loadBlocks();
+        loadGrid();
+        initGridSettings();
+        initElementPalette();
+        initKeyboardShortcuts();
+        loadUserPreferences();
     });
 
-    // 初始化拖拽排序
-    function initSortable() {
-        const container = document.getElementById('contentBlocks');
-        sortable = Sortable.create(container, {
-            animation: 150,
-            ghostClass: 'ghost',
-            chosenClass: 'dragging',
-            dragClass: 'drag-placeholder',
-            onEnd: function(evt) {
-                saveBlockOrder();
+    // 初始化键盘快捷键
+    function initKeyboardShortcuts() {
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S: 保存
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveGrid();
+            }
+            // Ctrl+Z: 撤销
+            if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+            }
+            // Ctrl+Y 或 Ctrl+Shift+Z: 重做
+            if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+                e.preventDefault();
+                redo();
+            }
+            // Delete: 删除选中元素
+            if (e.key === 'Delete' && selectedCells.length > 0) {
+                e.preventDefault();
+                deleteSelectedElements();
             }
         });
     }
 
-    // 加载所有内容块
-    async function loadBlocks() {
-        try {
-            const response = await fetch(`/api/admin/pages/${pageId}/blocks`);
-            const blocks = await response.json();
+    // 保存用户偏好设置
+    function saveUserPreferences() {
+        localStorage.setItem('gridEditor:gridLinesVisible', isGridLinesVisible);
+        localStorage.setItem('gridEditor:elementIconsVisible', isElementIconsVisible);
+        localStorage.setItem('gridEditor:zoom', currentZoom);
+    }
 
-            const container = document.getElementById('contentBlocks');
-            container.innerHTML = '';
+    // 加载用户偏好设置
+    function loadUserPreferences() {
+        const savedGridLines = localStorage.getItem('gridEditor:gridLinesVisible');
+        const savedElementIcons = localStorage.getItem('gridEditor:elementIconsVisible');
+        const savedZoom = localStorage.getItem('gridEditor:zoom');
 
-            if (blocks.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-mouse-pointer"></i>
-                        <h4>开始创建你的页面</h4>
-                        <p>点击上方按钮添加内容块，然后拖拽调整顺序</p>
-                    </div>
-                `;
-                return;
+        if (savedGridLines !== null) {
+            isGridLinesVisible = savedGridLines === 'true';
+            if (isGridLinesVisible) {
+                document.querySelector('.grid-canvas').classList.add('show-grid-lines');
+                document.getElementById('gridLinesBtn').classList.add('active');
             }
+        }
 
-            blocks.forEach(block => {
-                const blockElement = createBlockElement(block);
-                container.appendChild(blockElement);
-            });
-        } catch (error) {
-            console.error('加载内容块失败:', error);
-            alert('加载内容块失败');
+        if (savedElementIcons !== null) {
+            isElementIconsVisible = savedElementIcons === 'true';
+            if (isElementIconsVisible) {
+                document.querySelector('.grid-canvas').classList.add('show-element-icons');
+            }
+        }
+
+        if (savedZoom) {
+            currentZoom = parseInt(savedZoom);
+            setGridZoom(currentZoom);
         }
     }
 
-    // 创建内容块元素
-    function createBlockElement(block) {
-        const div = document.createElement('div');
-        div.className = `content-block block-type-${block.block_type}`;
-        div.dataset.blockId = block.id;
+    // 保存到历史记录
+    function saveToHistory() {
+        // 截断未来历史
+        gridHistory = gridHistory.slice(0, historyIndex + 1);
+        // 添加新历史记录
+        gridHistory.push(JSON.stringify(gridData));
+        historyIndex++;
+        // 限制历史记录数量
+        if (gridHistory.length > 50) {
+            gridHistory.shift();
+            historyIndex--;
+        }
+    }
 
-        const blockTypeNames = {
-            'text': '文本',
-            'image': '图片',
-            'video': '视频',
-            'quote': '引用',
-            'divider': '分隔线',
-            'article': '文章引用'
+    // 撤销
+    function undo() {
+        if (historyIndex > 0) {
+            historyIndex--;
+            gridData = JSON.parse(gridHistory[historyIndex]);
+            renderGrid();
+            updateUI();
+        }
+    }
+
+    // 重做
+    function redo() {
+        if (historyIndex < gridHistory.length - 1) {
+            historyIndex++;
+            gridData = JSON.parse(gridHistory[historyIndex]);
+            renderGrid();
+            updateUI();
+        }
+    }
+
+    // 初始化元素库拖拽
+    function initElementPalette() {
+        const elementBtns = document.querySelectorAll('.element-btn');
+        elementBtns.forEach(btn => {
+            btn.addEventListener('dragstart', function(e) {
+                const elementType = this.dataset.elementType;
+                e.dataTransfer.setData('text/element-type', elementType);
+                e.dataTransfer.effectAllowed = 'copy';
+
+                // 添加拖拽样式
+                this.classList.add('dragging');
+                setTimeout(() => this.classList.remove('dragging'), 300);
+            });
+        });
+    }
+
+    // 初始化网格设置
+    function initGridSettings() {
+        document.getElementById('gridColumns').addEventListener('change', function() {
+            saveToHistory(); // 保存历史记录
+            const newColumns = parseInt(this.value);
+            const oldColumns = gridData.columns;
+
+            // 如果列数减少，需要重新排列元素
+            if (newColumns !== oldColumns) {
+                const newCells = {};
+                for (const [cellKey, element] of Object.entries(gridData.cells)) {
+                    const [row, col] = cellKey.split('-').map(Number);
+                    // 计算新位置
+                    const newRow = Math.floor((row * oldColumns + col) / newColumns);
+                    const newCol = (row * oldColumns + col) % newColumns;
+                    const newCellKey = `${newRow}-${newCol}`;
+                    newCells[newCellKey] = element;
+                }
+                gridData.cells = newCells;
+            }
+
+            gridData.columns = newColumns;
+            renderGrid();
+        });
+
+        document.getElementById('gridRowHeight').addEventListener('change', function() {
+            saveToHistory(); // 保存历史记录
+            gridData.rowHeight = parseInt(this.value);
+            renderGrid();
+        });
+    }
+
+    // 切换网格线显示
+    function toggleGridLines() {
+        const canvas = document.querySelector('.grid-canvas');
+        const btn = document.getElementById('gridLinesBtn');
+
+        isGridLinesVisible = !isGridLinesVisible;
+
+        if (isGridLinesVisible) {
+            canvas.classList.add('show-grid-lines');
+            btn.classList.add('active');
+        } else {
+            canvas.classList.remove('show-grid-lines');
+            btn.classList.remove('active');
+        }
+
+        saveUserPreferences();
+    }
+
+    // 切换元素图标显示
+    function toggleElementIcons() {
+        const canvas = document.querySelector('.grid-canvas');
+        const btn = document.getElementById('elementIconsBtn');
+
+        isElementIconsVisible = !isElementIconsVisible;
+
+        if (isElementIconsVisible) {
+            canvas.classList.add('show-element-icons');
+            btn.classList.add('active');
+        } else {
+            canvas.classList.remove('show-element-icons');
+            btn.classList.remove('active');
+        }
+
+        saveUserPreferences();
+    }
+
+    // 设置网格缩放
+    function setGridZoom(percentage) {
+        const canvas = document.querySelector('.grid-canvas');
+        const zoomLevel = document.getElementById('zoomLevel');
+
+        currentZoom = percentage;
+        canvas.style.transform = `scale(${percentage / 100})`;
+        canvas.style.transformOrigin = 'top left';
+
+        zoomLevel.textContent = `${percentage}%`;
+        saveUserPreferences();
+    }
+
+    // 预览网格
+    function previewGrid() {
+        const previewWindow = window.open(`/page/${window.location.pathname.split('/').pop()}`, '_blank');
+        if (previewWindow) {
+            previewWindow.focus();
+        }
+    }
+
+    // 删除选中元素
+    function deleteSelectedElements() {
+        if (selectedCells.length === 0) return;
+
+        if (confirm(`确定要删除选中的 ${selectedCells.length} 个元素吗？`)) {
+            selectedCells.forEach(cellKey => {
+                delete gridData.cells[cellKey];
+            });
+            selectedCells = [];
+            renderGrid();
+            updateCellSelection();
+        }
+    }
+
+    // 拆分单元格
+    function splitCell() {
+        if (selectedCells.length === 0) return;
+
+        saveToHistory(); // 保存历史记录
+
+        let splitCount = 0;
+        selectedCells.forEach(cellKey => {
+            if (gridData.mergedCells[cellKey]) {
+                // 找到合并单元格的主单元格并拆分
+                const mergeInfo = gridData.mergedCells[cellKey];
+                delete gridData.mergedCells[cellKey];
+                splitCount++;
+            } else if (isCellPartOfMerge(cellKey)) {
+                // 如果是从单元格，找到主单元格并拆分
+                for (const [masterCell, info] of Object.entries(gridData.mergedCells)) {
+                    if (info.masterCell === masterCell) {
+                        const [mRow, mCol] = masterCell.split('-').map(Number);
+                        for (let r = 0; r < info.rowSpan; r++) {
+                            for (let c = 0; c < info.colSpan; c++) {
+                                const checkKey = `${mRow + r}-${mCol + c}`;
+                                if (checkKey === cellKey) {
+                                    delete gridData.mergedCells[masterCell];
+                                    splitCount++;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        clearCellSelection();
+        renderGrid();
+
+        if (splitCount > 0) {
+            alert(`成功拆分 ${splitCount} 个合并单元格`);
+        }
+    }
+
+    // 更新UI状态
+    function updateUI() {
+        document.getElementById('gridColumns').value = gridData.columns;
+        document.getElementById('gridRowHeight').value = gridData.rowHeight;
+    }
+
+    // 渲染网格
+    function renderGrid() {
+        const container = document.getElementById('gridContainer');
+        container.style.gridTemplateColumns = `repeat(${gridData.columns}, 1fr)`;
+        container.style.gridTemplateRows = `repeat(${gridData.rows}, ${gridData.rowHeight}px)`;
+
+        // 设置CSS变量用于网格线间距
+        container.parentElement.style.setProperty('--grid-size', `${115}px`);
+
+        container.innerHTML = '';
+
+        // 创建网格单元格
+        for (let row = 0; row < gridData.rows; row++) {
+            for (let col = 0; col < gridData.columns; col++) {
+                const cellKey = `${row}-${col}`;
+
+                // 检查是否是合并单元格
+                const isPartOfMerged = isCellPartOfMerge(cellKey);
+
+                if (isPartOfMerged) {
+                    // 如果是合并单元格的从单元格，跳过渲染
+                    continue;
+                }
+
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                cell.dataset.cellKey = cellKey;
+
+                // 检查是否是合并单元格的主单元格
+                const mergeInfo = gridData.mergedCells[cellKey];
+                if (mergeInfo) {
+                    cell.classList.add('merged');
+                    cell.style.gridRow = `${row + 1} / span ${mergeInfo.rowSpan}`;
+                    cell.style.gridColumn = `${col + 1} / span ${mergeInfo.colSpan}`;
+                    cell.setAttribute('data-row-span', mergeInfo.rowSpan);
+                    cell.setAttribute('data-col-span', mergeInfo.colSpan);
+                }
+
+                // 添加拖拽事件监听
+                addCellDragHandlers(cell);
+
+                // 添加点击选择事件
+                addCellClickHandler(cell);
+
+                // 渲染内容
+                if (gridData.cells[cellKey]) {
+                    cell.classList.add('has-element');
+                    const elementData = gridData.cells[cellKey];
+                    cell.innerHTML = createElementPreview(elementData, row, col);
+
+                    // 添加元素类型图标覆盖层
+                    const iconOverlay = createElementIconOverlay(elementData.type);
+                    cell.appendChild(iconOverlay);
+
+                    // 如果是合并单元格，添加信息标识
+                    if (mergeInfo) {
+                        const infoDiv = document.createElement('div');
+                        infoDiv.className = 'merged-cell-info';
+                        infoDiv.textContent = `${mergeInfo.colSpan}x${mergeInfo.rowSpan}`;
+                        cell.appendChild(infoDiv);
+                    }
+                } else {
+                    cell.innerHTML = `
+                        <div class="cell-placeholder">
+                            <i class="fas fa-plus"></i>
+                            <span>拖拽元素到此处</span>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(cell);
+            }
+        }
+
+        // 更新选中状态
+        updateCellSelection();
+    }
+
+    // 创建元素类型图标覆盖层
+    function createElementIconOverlay(elementType) {
+        const overlay = document.createElement('div');
+        overlay.className = `element-icon-overlay ${elementType}`;
+
+        // 根据元素类型选择图标
+        const iconClass = getElementIconClass(elementType);
+        overlay.innerHTML = `<i class="${iconClass}"></i>`;
+
+        return overlay;
+    }
+
+    // 获取元素类型的图标类
+    function getElementIconClass(type) {
+        const icons = {
+            'text': 'fas fa-font',
+            'image': 'fas fa-image',
+            'video': 'fas fa-video',
+            'quote': 'fas fa-quote-left',
+            'button': 'fas fa-square',
+            'divider': 'fas fa-minus',
+            'gallery': 'fas fa-images',
+            'icon': 'fas fa-star',
+            'card': 'fas fa-credit-card'
+        };
+        return icons[type] || 'fas fa-file';
+    }
+
+    // 为单元格添加拖拽处理
+    function addCellDragHandlers(cell) {
+        cell.addEventListener('dragover', function(e) {
+            e.preventDefault();
+
+            const elementType = e.dataTransfer.getData('text/element-type');
+            const elementId = e.dataTransfer.getData('text/element-id');
+
+            // 如果是拖拽新元素到空单元格
+            if (elementType && !cell.classList.contains('has-element')) {
+                cell.classList.add('drag-over');
+            }
+            // 如果是移动现有元素
+            else if (elementId) {
+                cell.classList.add('drag-over');
+            }
+        });
+
+        cell.addEventListener('dragleave', function() {
+            cell.classList.remove('drag-over');
+        });
+
+        cell.addEventListener('drop', function(e) {
+            e.preventDefault();
+            cell.classList.remove('drag-over');
+
+            const targetRow = parseInt(cell.dataset.row);
+            const targetCol = parseInt(cell.dataset.col);
+            const targetCellKey = `${targetRow}-${targetCol}`;
+
+            // 检查是否有新元素被拖入
+            const elementType = e.dataTransfer.getData('text/element-type');
+            if (elementType) {
+                // 如果单元格已有元素，询问是否替换
+                if (gridData.cells[targetCellKey]) {
+                    if (!confirm('该位置已有元素，确定要替换吗？')) {
+                        return;
+                    }
+                }
+
+                // 添加新元素
+                gridData.cells[targetCellKey] = {
+                    id: generateId(),
+                    type: elementType,
+                    content: {},
+                    style: {}
+                };
+
+                renderGrid();
+                return;
+            }
+
+            // 检查是否移动现有元素
+            const elementId = e.dataTransfer.getData('text/element-id');
+            const sourceCellKey = e.dataTransfer.getData('text/source-cell');
+
+            if (elementId && sourceCellKey) {
+                // 如果目标单元格已有元素，询问是否交换
+                if (gridData.cells[targetCellKey] && targetCellKey !== sourceCellKey) {
+                    if (!confirm('该位置已有元素，确定要交换位置吗？')) {
+                        return;
+                    }
+                }
+
+                // 移动元素
+                const elementData = gridData.cells[sourceCellKey];
+                if (elementData) {
+                    // 如果目标位置有元素，先保存
+                    const targetElement = gridData.cells[targetCellKey];
+
+                    // 移动元素到新位置
+                    gridData.cells[targetCellKey] = elementData;
+
+                    // 如果不是交换到同一位置，删除原位置
+                    if (targetCellKey !== sourceCellKey) {
+                        delete gridData.cells[sourceCellKey];
+                    }
+
+                    // 如果是交换位置，将原位置的元素放到源位置
+                    if (targetElement && targetCellKey !== sourceCellKey) {
+                        gridData.cells[sourceCellKey] = targetElement;
+                    }
+
+                    renderGrid();
+                }
+            }
+        });
+
+        // 点击编辑现有元素
+        cell.addEventListener('click', function(e) {
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            const cellKey = `${row}-${col}`;
+
+            if (gridData.cells[cellKey] && !e.target.closest('.element-controls')) {
+                editElement(gridData.cells[cellKey], row, col);
+            }
+        });
+    }
+
+    // 显示元素库
+    function showElementPalette(row, col) {
+        const palette = document.createElement('div');
+        palette.className = 'element-palette position-absolute';
+        palette.style.top = '0';
+        palette.style.left = '0';
+        palette.style.right = '0';
+        palette.style.zIndex = '1000';
+        palette.style.background = 'white';
+        palette.style.padding = '15px';
+        palette.style.borderRadius = '8px';
+        palette.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+
+        const elements = [
+            { type: 'text', icon: 'fa-font', name: '文本' },
+            { type: 'image', icon: 'fa-image', name: '图片' },
+            { type: 'video', icon: 'fa-video', name: '视频' },
+            { type: 'quote', icon: 'fa-quote-left', name: '引用' },
+            { type: 'button', icon: 'fa-mouse-pointer', name: '按钮' },
+            { type: 'gallery', icon: 'fa-images', name: '相册' },
+            { type: 'icon', icon: 'fa-icons', name: '图标' },
+            { type: 'card', icon: 'fa-square', name: '卡片' }
+        ];
+
+        let html = '';
+        elements.forEach(el => {
+            html += `
+                <div class="element-btn" onclick="addElementToCell('${el.type}', ${row}, ${col})">
+                    <i class="fas ${el.icon}"></i>
+                    <div>${el.name}</div>
+                </div>
+            `;
+        });
+
+        palette.innerHTML = html;
+
+        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        cell.innerHTML = '';
+        cell.appendChild(palette);
+    }
+
+    // 添加元素到单元格
+    function addElementToCell(type, row, col) {
+        const cellKey = `${row}-${col}`;
+        gridData.cells[cellKey] = {
+            id: generateId(),
+            type: type,
+            content: {},
+            style: {}
         };
 
-        div.innerHTML = `
-            <div class="block-header">
-                <span class="block-type">
-                    <i class="fas ${getBlockIcon(block.block_type)} me-2"></i>
-                    ${blockTypeNames[block.block_type] || block.block_type}
-                </span>
-                <div class="block-controls">
-                    <button class="btn btn-sm btn-outline-primary" onclick="editBlock(${block.id})" title="编辑">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBlock(${block.id})" title="删除">
-                        <i class="fas fa-trash"></i>
-                    </button>
+        // 自动打开编辑界面
+        setTimeout(() => {
+            editElement(gridData.cells[cellKey], row, col);
+        }, 100);
+
+        renderGrid();
+    }
+
+    // 生成唯一ID
+    function generateId() {
+        return 'elem_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // 创建元素预览
+    function createElementPreview(element, row, col) {
+        const content = element.content || {};
+        let preview = '';
+
+        switch (element.type) {
+            case 'text':
+                preview = `<div class="element-preview">${content.html ? content.html.substring(0, 100) : '文本内容'}</div>`;
+                break;
+
+            case 'image':
+                preview = content.url ?
+                    `<div class="element-preview"><img src="${content.url}" alt="${content.alt || ''}"></div>` :
+                    '<div class="element-preview">点击添加图片</div>';
+                break;
+
+            case 'video':
+                preview = content.url ?
+                    `<div class="element-preview"><i class="fas fa-play-circle me-1"></i>视频</div>` :
+                    '<div class="element-preview">点击添加视频</div>';
+                break;
+
+            case 'quote':
+                preview = content.text ?
+                    `<div class="element-preview"><i class="fas fa-quote-left me-1"></i>${content.text.substring(0, 50)}...</div>` :
+                    '<div class="element-preview">点击添加引用</div>';
+                break;
+
+            case 'button':
+                preview = content.text ?
+                    `<div class="element-preview"><button class="btn btn-sm" style="background: ${content.bgColor || '#0d6efd'}; color: white;">${content.text}</button></div>` :
+                    '<div class="element-preview">点击添加按钮</div>';
+                break;
+
+            case 'gallery':
+                preview = `<div class="element-preview"><i class="fas fa-images me-1"></i>相册 (${content.images ? content.images.length : 0}张)</div>`;
+                break;
+
+            case 'icon':
+                preview = content.icon ?
+                    `<div class="element-preview"><i class="fas ${content.icon} fa-2x" style="color: ${content.color || '#0d6efd'}"></i></div>` :
+                    '<div class="element-preview">点击添加图标</div>';
+                break;
+
+            case 'card':
+                preview = `<div class="element-preview"><i class="fas fa-square me-1"></i>卡片</div>`;
+                break;
+
+            case 'divider':
+                preview = `<div class="element-preview"><hr></div>`;
+                break;
+
+            default:
+                preview = '<div class="element-preview">未知类型</div>';
+        }
+
+        const cellKey = `${row}-${col}`;
+        const elementHtml = `
+            <div class="grid-element element-${element.type}" draggable="true">
+                <div class="element-header">
+                    <span class="element-type">
+                        <i class="fas ${getElementIcon(element.type)} me-1"></i>
+                        ${getElementTypeName(element.type)}
+                    </span>
+                    <div class="element-controls">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editElementInCell('${element.id}', ${row}, ${col})" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeElementFromCell('${element.id}', ${row}, ${col})" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="block-content">
-                ${renderBlockContent(block)}
+                <div class="element-content">
+                    ${preview}
+                </div>
             </div>
         `;
 
-        return div;
+        // 创建临时DOM来添加拖拽事件
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = elementHtml;
+        const elementDiv = tempDiv.querySelector('.grid-element');
+
+        // 添加元素拖拽事件
+        elementDiv.addEventListener('dragstart', function(e) {
+            e.stopPropagation();
+            e.dataTransfer.setData('text/element-id', element.id);
+            e.dataTransfer.setData('text/source-cell', cellKey);
+            e.dataTransfer.effectAllowed = 'move';
+
+            // 延迟添加拖拽样式，避免闪烁
+            setTimeout(() => {
+                this.classList.add('dragging');
+            }, 10);
+        });
+
+        elementDiv.addEventListener('dragend', function(e) {
+            this.classList.remove('dragging');
+        });
+
+        return tempDiv.innerHTML;
     }
 
-    // 获取块类型图标
-    function getBlockIcon(type) {
+    // 获取元素图标
+    function getElementIcon(type) {
         const icons = {
-            'text': 'fa-file-alt',
+            'text': 'fa-font',
             'image': 'fa-image',
             'video': 'fa-video',
             'quote': 'fa-quote-left',
+            'button': 'fa-mouse-pointer',
             'divider': 'fa-minus',
-            'article': 'fa-newspaper'
+            'gallery': 'fa-images',
+            'icon': 'fa-icons',
+            'card': 'fa-square'
         };
         return icons[type] || 'fa-file';
     }
 
-    // 渲染块内容
-    function renderBlockContent(block) {
-        const content = block.content || {};
-
-        switch (block.block_type) {
-            case 'text':
-                return content.html || '<p>点击编辑文本内容</p>';
-
-            case 'image':
-                return content.url ?
-                    `<img src="${content.url}" alt="${content.alt || ''}" style="max-width: 100%;">` :
-                    '<p class="text-muted">点击编辑图片</p>';
-
-            case 'video':
-                return content.url ?
-                    `<video controls style="max-width: 100%;"><source src="${content.url}"></video>` :
-                    '<p class="text-muted">点击编辑视频</p>';
-
-            case 'quote':
-                return content.text ?
-                    `<blockquote class="blockquote"><p>${content.text}</p>${content.author ? `<footer class="blockquote-footer">${content.author}</footer>` : ''}</blockquote>` :
-                    '<p class="text-muted">点击编辑引用</p>';
-
-            case 'divider':
-                return '<hr>';
-
-            case 'article':
-                return content.articleId ?
-                    `<div class="card"><div class="card-body"><h6>文章引用 #${content.articleId}</h6><p class="text-muted">点击选择文章</p></div></div>` :
-                    '<p class="text-muted">点击选择文章</p>';
-
-            default:
-                return '<p>未知类型</p>';
-        }
+    // 获取元素类型名称
+    function getElementTypeName(type) {
+        const names = {
+            'text': '文本',
+            'image': '图片',
+            'video': '视频',
+            'quote': '引用',
+            'button': '按钮',
+            'divider': '分隔线',
+            'gallery': '相册',
+            'icon': '图标',
+            'card': '卡片'
+        };
+        return names[type] || type;
     }
 
-    // 添加新块
-    async function addBlock(type) {
-        try {
-            const response = await fetch(`/api/admin/pages/${pageId}/blocks`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    block_type: type,
-                    content: {},
-                    style: {}
-                })
-            });
+    // 编辑元素
+    function editElement(element, row, col) {
+        currentEditingElement = { ...element, row, col };
 
-            const block = await response.json();
-            await loadBlocks();
+        const modalContent = document.getElementById('editElementContent');
+        modalContent.innerHTML = getElementEditForm(element);
 
-            // 立即编辑新添加的块
-            setTimeout(() => editBlock(block.id), 100);
-        } catch (error) {
-            console.error('添加块失败:', error);
-            alert('添加块失败');
-        }
-    }
-
-    // 编辑块
-    async function editBlock(blockId) {
-        try {
-            const response = await fetch(`/api/admin/blocks/${blockId}`);
-            const block = await response.json();
-            currentEditingBlock = block;
-
-            const modalContent = document.getElementById('editBlockContent');
-            modalContent.innerHTML = getEditForm(block);
-
-            // 如果是文本块，初始化Quill编辑器
-            if (block.block_type === 'text' && !quillEditor) {
-                setTimeout(() => {
-                    const editorDiv = document.getElementById('quill-editor');
-                    if (editorDiv) {
-                        quillEditor = new Quill('#quill-editor', {
-                            theme: 'snow',
-                            placeholder: '输入文本内容...',
-                            modules: {
-                                toolbar: [
-                                    [{ 'header': [1, 2, 3, false] }],
-                                    ['bold', 'italic', 'underline', 'strike'],
-                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                    [{ 'color': [] }, { 'background': [] }],
-                                    ['link', 'image'],
-                                    ['clean']
-                                ]
-                            }
-                        });
-
-                        // 设置初始内容
-                        if (block.content && block.content.html) {
-                            quillEditor.root.innerHTML = block.content.html;
+        // 如果是文本块，初始化Quill编辑器
+        if (element.type === 'text' && !quillEditor) {
+            setTimeout(() => {
+                const editorDiv = document.getElementById('element-quill-editor');
+                if (editorDiv) {
+                    quillEditor = new Quill('#element-quill-editor', {
+                        theme: 'snow',
+                        placeholder: '输入内容...',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'color': [] }, { 'background': [] }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
                         }
-                    }
-                }, 100);
-            }
+                    });
 
-            // 显示模态框
-            const modal = new bootstrap.Modal(document.getElementById('editBlockModal'));
-            modal.show();
-        } catch (error) {
-            console.error('加载编辑内容失败:', error);
-            alert('加载编辑内容失败');
+                    if (element.content && element.content.html) {
+                        quillEditor.root.innerHTML = element.content.html;
+                    }
+                }
+            }, 100);
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('editElementModal'));
+        modal.show();
+    }
+
+    // 编辑单元格中的元素
+    function editElementInCell(elementId, row, col) {
+        const cellKey = `${row}-${col}`;
+        if (gridData.cells[cellKey]) {
+            editElement(gridData.cells[cellKey], row, col);
         }
     }
 
-    // 获取编辑表单
-    function getEditForm(block) {
-        const content = block.content || {};
+    // 从单元格删除元素
+    function removeElementFromCell(elementId, row, col) {
+        if (!confirm('确定要删除这个元素吗？')) return;
 
-        switch (block.block_type) {
+        const cellKey = `${row}-${col}`;
+        delete gridData.cells[cellKey];
+        renderGrid();
+    }
+
+    // 获取元素编辑表单
+    function getElementEditForm(element) {
+        const content = element.content || {};
+        let html = '';
+
+        switch (element.type) {
             case 'text':
-                return `
-                    <div>
-                        <label class="form-label">文本内容</label>
-                        <div id="quill-editor" style="height: 300px;"></div>
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            文本内容
+                            <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="showArticleModal()">
+                                <i class="fas fa-newspaper"></i> 引用文章
+                            </button>
+                        </div>
+                        <div id="element-quill-editor" style="height: 300px;"></div>
                     </div>
                 `;
+                break;
 
             case 'image':
-                return `
-                    <div class="mb-3">
-                        <label class="form-label">图片URL</label>
-                        <input type="text" id="imageUrl" class="form-control" value="${content.url || ''}" placeholder="/static/uploads/images/example.jpg">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Alt文本</label>
-                        <input type="text" id="imageAlt" class="form-control" value="${content.alt || ''}" placeholder="图片描述">
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">图片设置</div>
+                        <div class="mb-3">
+                            <label class="form-label">图片URL</label>
+                            <div class="input-group">
+                                <input type="text" id="element-image-url" class="form-control" value="${content.url || ''}" placeholder="/static/uploads/images/example.jpg">
+                                <button type="button" class="btn btn-outline-secondary" onclick="showImageLibraryModal('image')">
+                                    <i class="fas fa-images"></i> 从图库选择
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alt文本</label>
+                            <input type="text" id="element-image-alt" class="form-control" value="${content.alt || ''}" placeholder="图片描述">
+                        </div>
                     </div>
                 `;
+                break;
 
             case 'video':
-                return `
-                    <div class="mb-3">
-                        <label class="form-label">视频URL</label>
-                        <input type="text" id="videoUrl" class="form-control" value="${content.url || ''}" placeholder="/static/uploads/videos/example.mp4">
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">视频设置</div>
+                        <div class="mb-3">
+                            <label class="form-label">视频URL</label>
+                            <div class="input-group">
+                                <input type="text" id="element-video-url" class="form-control" value="${content.url || ''}" placeholder="/static/uploads/videos/example.mp4">
+                                <button type="button" class="btn btn-outline-secondary" onclick="showVideoLibraryModal()">
+                                    <i class="fas fa-video"></i> 从视频库选择
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
+                break;
 
             case 'quote':
-                return `
-                    <div class="mb-3">
-                        <label class="form-label">引用文本</label>
-                        <textarea id="quoteText" class="form-control" rows="3" placeholder="输入引用文本">${content.text || ''}</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">作者</label>
-                        <input type="text" id="quoteAuthor" class="form-control" value="${content.author || ''}" placeholder="引用来源">
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">引用设置</div>
+                        <div class="mb-3">
+                            <label class="form-label">引用文本</label>
+                            <textarea id="element-quote-text" class="form-control" rows="3" placeholder="输入引用文本">${content.text || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">作者</label>
+                            <input type="text" id="element-quote-author" class="form-control" value="${content.author || ''}" placeholder="引用来源">
+                        </div>
                     </div>
                 `;
+                break;
 
-            case 'article':
-                return `
-                    <div class="mb-3">
-                        <label class="form-label">选择文章</label>
-                        <select id="articleSelect" class="form-select">
-                            <option value="">请选择文章</option>
-                            ${content.articleId ? `<option value="${content.articleId}" selected>文章 #${content.articleId}</option>` : ''}
-                        </select>
+            case 'button':
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">按钮设置</div>
+                        <div class="mb-3">
+                            <label class="form-label">按钮文本</label>
+                            <input type="text" id="element-button-text" class="form-control" value="${content.text || ''}" placeholder="按钮文本">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">链接URL</label>
+                            <input type="text" id="element-button-link" class="form-control" value="${content.link || ''}" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">按钮颜色</label>
+                            <input type="color" id="element-button-color" class="form-control" value="${content.bgColor || '#0d6efd'}">
+                        </div>
                     </div>
                 `;
+                break;
+
+            case 'gallery':
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">相册设置</div>
+                        <div class="mb-3">
+                            <label class="form-label">图片URL (每行一个)</label>
+                            <div class="input-group">
+                                <textarea id="element-gallery-urls" class="form-control" rows="5" placeholder="/static/uploads/images/1.jpg
+/static/uploads/images/2.jpg">${content.imageUrls || ''}</textarea>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="showImageLibraryModal('gallery')">
+                                    <i class="fas fa-images"></i> 从图库选择多张
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 'icon':
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">图标设置</div>
+                        <div class="mb-3">
+                            <label class="form-label">图标 (FontAwesome类)</label>
+                            <input type="text" id="element-icon-class" class="form-control" value="${content.icon || 'fa-star'}" placeholder="fa-star">
+                            <div class="form-text">参考: https://fontawesome.com/icons</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">颜色</label>
+                            <input type="color" id="element-icon-color" class="form-control" value="${content.color || '#0d6efd'}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">大小</label>
+                            <select id="element-icon-size" class="form-select">
+                                <option value="fa-1x">小</option>
+                                <option value="fa-2x" selected>中</option>
+                                <option value="fa-3x">大</option>
+                                <option value="fa-4x">超大</option>
+                                <option value="fa-5x">特大</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 'card':
+                html = `
+                    <div class="form-section">
+                        <div class="form-section-title">卡片设置</div>
+                        <div class="mb-3">
+                            <label class="form-label">标题</label>
+                            <input type="text" id="element-card-title" class="form-control" value="${content.title || ''}" placeholder="卡片标题">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">内容</label>
+                            <textarea id="element-card-content" class="form-control" rows="3" placeholder="卡片内容">${content.content || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">背景颜色</label>
+                            <input type="color" id="element-card-bg" class="form-control" value="${content.bgColor || '#ffffff'}">
+                        </div>
+                    </div>
+                `;
+                break;
 
             default:
-                return '<p>不支持的块类型</p>';
+                html = '<p>不支持的元素类型</p>';
         }
+
+        return html;
     }
 
-    // 保存块编辑
-    async function saveBlockEdit() {
-        if (!currentEditingBlock) return;
+    // 保存元素编辑
+    async function saveElementEdit() {
+        if (!currentEditingElement) return;
 
         try {
             let updatedContent = {};
 
-            switch (currentEditingBlock.block_type) {
+            switch (currentEditingElement.type) {
                 case 'text':
                     if (quillEditor) {
                         updatedContent.html = quillEditor.root.innerHTML;
@@ -533,95 +1738,618 @@
 
                 case 'image':
                     updatedContent = {
-                        url: document.getElementById('imageUrl').value,
-                        alt: document.getElementById('imageAlt').value
+                        url: document.getElementById('element-image-url').value,
+                        alt: document.getElementById('element-image-alt').value
                     };
                     break;
 
                 case 'video':
                     updatedContent = {
-                        url: document.getElementById('videoUrl').value
+                        url: document.getElementById('element-video-url').value
                     };
                     break;
 
                 case 'quote':
                     updatedContent = {
-                        text: document.getElementById('quoteText').value,
-                        author: document.getElementById('quoteAuthor').value
+                        text: document.getElementById('element-quote-text').value,
+                        author: document.getElementById('element-quote-author').value
                     };
                     break;
 
-                case 'article':
+                case 'button':
                     updatedContent = {
-                        articleId: document.getElementById('articleSelect').value
+                        text: document.getElementById('element-button-text').value,
+                        link: document.getElementById('element-button-link').value,
+                        bgColor: document.getElementById('element-button-color').value
+                    };
+                    break;
+
+                case 'gallery':
+                    const urlsText = document.getElementById('element-gallery-urls').value;
+                    updatedContent = {
+                        imageUrls: urlsText
+                    };
+                    break;
+
+                case 'icon':
+                    updatedContent = {
+                        icon: document.getElementById('element-icon-class').value,
+                        color: document.getElementById('element-icon-color').value,
+                        size: document.getElementById('element-icon-size').value
+                    };
+                    break;
+
+                case 'card':
+                    updatedContent = {
+                        title: document.getElementById('element-card-title').value,
+                        content: document.getElementById('element-card-content').value,
+                        bgColor: document.getElementById('element-card-bg').value
                     };
                     break;
             }
 
-            const response = await fetch(`/api/admin/blocks/${currentEditingBlock.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    content: updatedContent
-                })
-            });
-
-            if (response.ok) {
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editBlockModal'));
-                modal.hide();
-                loadBlocks();
-                currentEditingBlock = null;
-                quillEditor = null;
+            // 更新网格数据
+            const cellKey = `${currentEditingElement.row}-${currentEditingElement.col}`;
+            if (gridData.cells[cellKey]) {
+                gridData.cells[cellKey].content = updatedContent;
             }
+
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editElementModal'));
+            modal.hide();
+            renderGrid();
+
+            currentEditingElement = null;
+            quillEditor = null;
         } catch (error) {
-            console.error('保存块失败:', error);
-            alert('保存块失败');
+            console.error('保存元素失败:', error);
+            alert('保存元素失败');
         }
     }
 
-    // 删除块
-    async function deleteBlock(blockId) {
-        if (!confirm('确定要删除这个内容块吗？')) return;
+    // 添加行
+    function addRow() {
+        gridData.rows++;
+        renderGrid();
+    }
 
-        try {
-            const response = await fetch(`/api/admin/blocks/${blockId}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                loadBlocks();
+    // 删除行
+    function removeRow() {
+        if (gridData.rows > 1) {
+            // 删除最后一行
+            for (let col = 0; col < gridData.columns; col++) {
+                delete gridData.cells[`${gridData.rows - 1}-${col}`];
             }
-        } catch (error) {
-            console.error('删除块失败:', error);
-            alert('删除块失败');
+            gridData.rows--;
+            renderGrid();
         }
     }
 
-    // 保存块顺序
-    async function saveBlockOrder() {
-        const blocks = document.querySelectorAll('.content-block');
-        const blockOrders = Array.from(blocks).map(block => parseInt(block.dataset.blockId));
+    // 添加元素
+    function addElement(type) {
+        alert('请直接拖拽元素到网格上');
+    }
 
+    // 保存网格
+    async function saveGrid() {
         try {
-            await fetch(`/api/admin/pages/${pageId}/blocks/reorder`, {
+            // 保存到历史记录
+            saveToHistory();
+
+            const response = await fetch(`/api/admin/pages/${pageId}/grid-layout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    block_orders: blockOrders
+                    grid: gridData,
+                    mergedCells: gridData.mergedCells
                 })
             });
+
+            if (response.ok) {
+                // 显示成功消息
+                const btn = document.querySelector('.toolbar-btn[title="保存 (Ctrl+S)"]');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.style.background = 'var(--success-color)';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.background = '';
+                }, 1000);
+            } else {
+                throw new Error('保存失败');
+            }
         } catch (error) {
-            console.error('保存顺序失败:', error);
+            console.error('保存网格失败:', error);
+            alert('保存网格失败');
         }
     }
 
-    // 保存页面
-    function savePage() {
-        alert('页面已自动保存！所有更改都已实时同步到服务器。');
+    // 加载网格
+    async function loadGrid() {
+        try {
+            const response = await fetch(`/api/admin/pages/${pageId}/grid-layout`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.grid) {
+                    gridData = data.grid;
+                    // 确保有mergedCells对象
+                    if (!gridData.mergedCells) {
+                        gridData.mergedCells = {};
+                    }
+                    // 更新UI控件
+                    document.getElementById('gridColumns').value = gridData.columns;
+                    document.getElementById('gridRowHeight').value = gridData.rowHeight;
+                }
+            }
+        } catch (error) {
+            console.error('加载网格失败:', error);
+        } finally {
+            renderGrid();
+        }
+    }
+
+    // 检查单元格是否是合并单元格的一部分
+    function isCellPartOfMerge(cellKey) {
+        // 检查是否是合并单元格的从单元格
+        for (const [masterCell, mergeInfo] of Object.entries(gridData.mergedCells)) {
+            if (mergeInfo.masterCell && mergeInfo.masterCell !== cellKey) {
+                // 计算合并区域的所有单元格
+                const [masterRow, masterCol] = masterCell.split('-').map(Number);
+                for (let r = 0; r < mergeInfo.rowSpan; r++) {
+                    for (let c = 0; c < mergeInfo.colSpan; c++) {
+                        const checkKey = `${masterRow + r}-${masterCol + c}`;
+                        if (checkKey === cellKey && (r !== 0 || c !== 0)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // 添加单元格点击选择处理
+    function addCellClickHandler(cell) {
+        cell.addEventListener('click', function(e) {
+            const cellKey = this.dataset.cellKey;
+
+            // 清除之前的选择（如果不是按住Ctrl/Cmd）
+            if (!e.ctrlKey && !e.metaKey) {
+                clearCellSelection();
+            }
+
+            // 切换选择状态
+            toggleCellSelection(cellKey);
+
+            // 更新按钮状态
+            updateMergeButtons();
+        });
+    }
+
+    // 清除所有选中状态
+    function clearCellSelection() {
+        selectedCells = [];
+        const cells = document.querySelectorAll('.grid-cell.selected');
+        cells.forEach(cell => {
+            cell.classList.remove('selected');
+        });
+    }
+
+    // 切换单元格选择
+    function toggleCellSelection(cellKey) {
+        const index = selectedCells.indexOf(cellKey);
+        if (index > -1) {
+            selectedCells.splice(index, 1);
+        } else {
+            selectedCells.push(cellKey);
+        }
+        updateCellSelection();
+    }
+
+    // 更新单元格选择状态
+    function updateCellSelection() {
+        const cells = document.querySelectorAll('.grid-cell');
+        cells.forEach(cell => {
+            const cellKey = cell.dataset.cellKey;
+            if (selectedCells.includes(cellKey)) {
+                cell.classList.add('selected');
+            } else {
+                cell.classList.remove('selected');
+            }
+        });
+    }
+
+    // 更新合并按钮状态
+    function updateMergeButtons() {
+        const mergeBtn = document.getElementById('mergeBtn');
+        const unmergeBtn = document.getElementById('unmergeBtn');
+
+        if (selectedCells.length > 1) {
+            // 检查是否可以选择合并
+            const canMerge = canMergeSelectedCells();
+            mergeBtn.disabled = !canMerge;
+        } else {
+            mergeBtn.disabled = true;
+        }
+
+        // 检查是否有选中合并单元格
+        let hasMergedCell = false;
+        for (const cellKey of selectedCells) {
+            if (gridData.mergedCells[cellKey] || isCellPartOfMerge(cellKey)) {
+                hasMergedCell = true;
+                break;
+            }
+        }
+        unmergeBtn.disabled = !hasMergedCell && selectedCells.length === 0;
+    }
+
+    // 检查是否可以选择合并
+    function canMergeSelectedCells() {
+        if (selectedCells.length < 2) return false;
+
+        // 解析所有选中的单元格坐标
+        const cells = selectedCells.map(key => {
+            const [row, col] = key.split('-').map(Number);
+            return { row, col, key };
+        });
+
+        // 找出边界
+        const minRow = Math.min(...cells.map(c => c.row));
+        const maxRow = Math.max(...cells.map(c => c.row));
+        const minCol = Math.min(...cells.map(c => c.col));
+        const maxCol = Math.max(...cells.map(c => c.col));
+
+        // 检查是否形成矩形
+        const expectedCount = (maxRow - minRow + 1) * (maxCol - minCol + 1);
+        if (cells.length !== expectedCount) {
+            return false;
+        }
+
+        // 检查是否与现有合并单元格冲突
+        for (const cell of cells) {
+            if (isCellPartOfMerge(cell.key)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // 合并选中的单元格
+    function mergeSelectedCells() {
+        if (selectedCells.length < 2) {
+            alert('请至少选择2个单元格进行合并');
+            return;
+        }
+
+        if (!canMergeSelectedCells()) {
+            alert('选中的单元格无法合并，请确保选择连续的矩形区域');
+            return;
+        }
+
+        // 解析所有选中的单元格坐标
+        const cells = selectedCells.map(key => {
+            const [row, col] = key.split('-').map(Number);
+            return { row, col, key };
+        });
+
+        // 找出边界
+        const minRow = Math.min(...cells.map(c => c.row));
+        const maxRow = Math.max(...cells.map(c => c.row));
+        const minCol = Math.min(...cells.map(c => c.col));
+        const maxCol = Math.max(...cells.map(c => c.col));
+
+        // 创建合并信息
+        const masterCell = `${minRow}-${minCol}`;
+        const mergeInfo = {
+            rowSpan: maxRow - minRow + 1,
+            colSpan: maxCol - minCol + 1,
+            masterCell: masterCell,
+            cells: selectedCells.slice()
+        };
+
+        // 保存合并信息
+        gridData.mergedCells[masterCell] = mergeInfo;
+
+        // 清空除主单元格外的其他单元格
+        for (const cellKey of selectedCells) {
+            if (cellKey !== masterCell) {
+                delete gridData.cells[cellKey];
+            }
+        }
+
+        // 清除选择
+        clearCellSelection();
+
+        // 重新渲染
+        renderGrid();
+
+        alert(`成功合并单元格: ${mergeInfo.colSpan}列 x ${mergeInfo.rowSpan}行`);
+    }
+
+    // 取消合并选中的单元格
+    function unmergeSelectedCells() {
+        if (selectedCells.length === 0) {
+            alert('请先选择要取消合并的单元格');
+            return;
+        }
+
+        let unmergedCount = 0;
+
+        for (const cellKey of selectedCells) {
+            if (gridData.mergedCells[cellKey]) {
+                // 这是主单元格，取消合并
+                const mergeInfo = gridData.mergedCells[cellKey];
+                delete gridData.mergedCells[cellKey];
+                unmergedCount++;
+            } else if (isCellPartOfMerge(cellKey)) {
+                // 这是从单元格，找到主单元格并取消合并
+                for (const [masterCell, info] of Object.entries(gridData.mergedCells)) {
+                    if (info.masterCell === masterCell) {
+                        const [mRow, mCol] = masterCell.split('-').map(Number);
+                        for (let r = 0; r < info.rowSpan; r++) {
+                            for (let c = 0; c < info.colSpan; c++) {
+                                const checkKey = `${mRow + r}-${mCol + c}`;
+                                if (checkKey === cellKey) {
+                                    delete gridData.mergedCells[masterCell];
+                                    unmergedCount++;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 清除选择
+        clearCellSelection();
+
+        // 重新渲染
+        renderGrid();
+
+        if (unmergedCount > 0) {
+            alert(`成功取消合并 ${unmergedCount} 个单元格`);
+        } else {
+            alert('选中的单元格中无合并单元格');
+        }
+    }
+
+    // 显示图片库模态框
+    async function showImageLibraryModal(mode) {
+        try {
+            const response = await fetch('/api/images');
+            const images = await response.json();
+
+            const imageListDiv = document.getElementById('imageLibraryList');
+            imageListDiv.innerHTML = '';
+
+            if (images.length === 0) {
+                imageListDiv.innerHTML = '<div class="col-12 text-center text-muted">暂无图片</div>';
+            } else {
+                images.forEach(image => {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'col-md-3 mb-3';
+                    colDiv.innerHTML = `
+                        <div class="card h-100 image-library-item" data-image-id="${image.id}" style="cursor: pointer; ${mode === 'image' ? 'border: 2px solid transparent;' : ''}" onclick="${mode === 'image' ? `selectSingleImage('${image.filepath}', '${image.title}')` : 'toggleImageSelection(this)'}">
+                            <img src="/static/${image.filepath}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body">
+                                <h6 class="card-title">${image.title}</h6>
+                                <p class="card-text text-muted small">${image.description || ''}</p>
+                            </div>
+                            ${mode === 'gallery' ? '<i class="fas fa-check-circle position-absolute top-0 end-0 m-2 text-success" style="display: none;"></i>' : ''}
+                        </div>
+                    `;
+                    imageListDiv.appendChild(colDiv);
+                });
+            }
+
+            // 存储选择模式
+            window.imageLibraryMode = mode;
+            const modal = new bootstrap.Modal(document.getElementById('imageLibraryModal'));
+            modal.show();
+        } catch (error) {
+            console.error('加载图片库失败:', error);
+            alert('加载图片库失败');
+        }
+    }
+
+    // 选择单张图片
+    function selectSingleImage(filepath, title) {
+        document.getElementById('element-image-url').value = `/static/${filepath}`;
+        document.getElementById('element-image-alt').value = title;
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('imageLibraryModal'));
+        modal.hide();
+    }
+
+    // 切换图片选择（用于多选模式）
+    function toggleImageSelection(element) {
+        const checkIcon = element.querySelector('.fa-check-circle');
+        const isSelected = element.style.border.includes('2px solid');
+
+        if (isSelected) {
+            element.style.border = '2px solid transparent';
+            checkIcon.style.display = 'none';
+        } else {
+            element.style.border = '2px solid #0d6efd';
+            checkIcon.style.display = 'block';
+        }
+    }
+
+    // 应用选中的图片（多选模式）
+    function applySelectedImages() {
+        const selectedItems = document.querySelectorAll('.image-library-item');
+        const selectedUrls = [];
+
+        selectedItems.forEach(item => {
+            const isSelected = item.style.border.includes('2px solid');
+            if (isSelected) {
+                const img = item.querySelector('img');
+                const src = img.src;
+                selectedUrls.push(src);
+            }
+        });
+
+        if (selectedUrls.length > 0) {
+            const textarea = document.getElementById('element-gallery-urls');
+            textarea.value = selectedUrls.join('\n');
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('imageLibraryModal'));
+        modal.hide();
+    }
+
+    // 显示视频库模态框
+    async function showVideoLibraryModal() {
+        try {
+            const response = await fetch('/api/videos');
+            const videos = await response.json();
+
+            const videoListDiv = document.getElementById('videoLibraryList');
+            videoListDiv.innerHTML = '';
+
+            if (videos.length === 0) {
+                videoListDiv.innerHTML = '<div class="col-12 text-center text-muted">暂无视频</div>';
+            } else {
+                videos.forEach(video => {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'col-md-4 mb-3';
+                    colDiv.innerHTML = `
+                        <div class="card h-100 video-library-item" data-video-id="${video.id}" style="cursor: pointer; border: 2px solid transparent;" onclick="selectSingleVideo('${video.video_url}', '${video.title}')">
+                            <div class="card-body">
+                                <h6 class="card-title">${video.title}</h6>
+                                <p class="card-text text-muted small">${video.description || ''}</p>
+                                <video src="${video.video_url}" style="width: 100%; max-height: 200px;" controls></video>
+                            </div>
+                        </div>
+                    `;
+                    videoListDiv.appendChild(colDiv);
+                });
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('videoLibraryModal'));
+            modal.show();
+        } catch (error) {
+            console.error('加载视频库失败:', error);
+            alert('加载视频库失败');
+        }
+    }
+
+    // 选择单个视频
+    function selectSingleVideo(videoUrl, title) {
+        document.getElementById('element-video-url').value = videoUrl;
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('videoLibraryModal'));
+        modal.hide();
+    }
+
+    // 应用选中的视频
+    function applySelectedVideo() {
+        const selectedItem = document.querySelector('.video-library-item[style*="border: 2px solid"]');
+        if (selectedItem) {
+            const video = selectedItem.querySelector('video');
+            const title = selectedItem.querySelector('.card-title').textContent;
+            document.getElementById('element-video-url').value = video.src;
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('videoLibraryModal'));
+        modal.hide();
+    }
+
+    // 显示文章模态框
+    async function showArticleModal() {
+        try {
+            const response = await fetch('/api/articles');
+            const articles = await response.json();
+
+            const articleListDiv = document.getElementById('articleList');
+            articleListDiv.innerHTML = '';
+
+            if (articles.length === 0) {
+                articleListDiv.innerHTML = '<div class="text-center text-muted p-3">暂无文章</div>';
+            } else {
+                articles.forEach(article => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'list-group-item list-group-item-action article-item';
+                    itemDiv.style.cursor = 'pointer';
+                    itemDiv.dataset.articleId = article.id;
+                    itemDiv.dataset.articleSlug = article.slug;
+                    itemDiv.dataset.articleTitle = article.title;
+                    itemDiv.dataset.articleContent = article.content;
+
+                    // 提取摘要（前200个字符）
+                    let excerpt = article.excerpt || '';
+                    if (!excerpt && article.content) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = article.content;
+                        excerpt = tempDiv.textContent || tempDiv.innerText || '';
+                        excerpt = excerpt.length > 200 ? excerpt.substring(0, 200) + '...' : excerpt;
+                    }
+
+                    itemDiv.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${article.title}</h6>
+                            <small>${new Date(article.created_at).toLocaleDateString()}</small>
+                        </div>
+                        <p class="mb-1 text-muted">${excerpt || '无摘要'}</p>
+                        <small>点击选择</small>
+                    `;
+
+                    itemDiv.addEventListener('click', function() {
+                        // 移除其他选中状态
+                        document.querySelectorAll('.article-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        // 添加选中状态
+                        this.classList.add('active');
+                    });
+
+                    articleListDiv.appendChild(itemDiv);
+                });
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('articleModal'));
+            modal.show();
+        } catch (error) {
+            console.error('加载文章列表失败:', error);
+            alert('加载文章列表失败');
+        }
+    }
+
+    // 将文章插入到文本编辑器
+    function insertArticleToText() {
+        const selectedItem = document.querySelector('.article-item.active');
+        if (!selectedItem) {
+            alert('请先选择一篇文章');
+            return;
+        }
+
+        const title = selectedItem.dataset.articleTitle;
+        const slug = selectedItem.dataset.articleSlug;
+        const content = selectedItem.dataset.articleContent;
+
+        // 创建文章引用内容
+        const articleHtml = `
+            <h3>${title}</h3>
+            <div>${content}</div>
+            <p><a href="/article/${slug}" target="_blank">阅读全文 →</a></p>
+        `;
+
+        // 插入到Quill编辑器
+        if (quillEditor) {
+            const range = quillEditor.getSelection();
+            if (range) {
+                quillEditor.clipboard.dangerouslyPasteHTML(range.index, articleHtml);
+            } else {
+                quillEditor.root.innerHTML += articleHtml;
+            }
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('articleModal'));
+        modal.hide();
     }
 </script>
 {% endblock %}
