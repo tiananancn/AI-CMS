@@ -1,0 +1,197 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-30 10:38+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: templates/base.html:6 templates/index.html:3
+msgid "AI-CMS - 智能内容管理系统"
+msgstr ""
+
+#: templates/index.html:30
+msgid "欢迎来到AI-CMS"
+msgstr ""
+
+#: templates/index.html:31
+msgid "智能内容管理系统，让创作更简单"
+msgstr ""
+
+#: templates/index.html:34
+msgid "阅读文章"
+msgstr ""
+
+#: templates/index.html:37
+msgid "观看视频"
+msgstr ""
+
+#: templates/index.html:54 templates/index.html:104 templates/index.html:145
+#: templates/index.html:181 templates/index.html:213 templates/index.html:245
+msgid "查看更多"
+msgstr ""
+
+#: templates/index.html:91
+msgid "暂无文章"
+msgstr ""
+
+#: templates/index.html:132
+msgid "暂无视频"
+msgstr ""
+
+#: templates/index.html:167
+msgid "暂无图片"
+msgstr ""
+
+#: templates/index.html:180
+msgid "最新文章"
+msgstr ""
+
+#: templates/index.html:212
+msgid "最新视频"
+msgstr ""
+
+#: templates/index.html:244
+msgid "最新图片"
+msgstr ""
+
+#: templates/admin/base.html:6
+msgid "CMS管理后台"
+msgstr ""
+
+#: templates/admin/base.html:218
+msgid "AI-CMS管理后台"
+msgstr ""
+
+#: templates/admin/base.html:224
+msgid "仪表盘"
+msgstr ""
+
+#: templates/admin/base.html:229
+msgid "文章管理"
+msgstr ""
+
+#: templates/admin/base.html:234
+msgid "视频管理"
+msgstr ""
+
+#: templates/admin/base.html:239
+msgid "图片管理"
+msgstr ""
+
+#: templates/admin/base.html:245
+msgid "版面管理"
+msgstr ""
+
+#: templates/admin/base.html:252
+msgid "首页配置"
+msgstr ""
+
+#: templates/admin/base.html:257
+msgid "动态页面"
+msgstr ""
+
+#: templates/admin/base.html:262 templates/admin/menu_management.html:3
+#: templates/admin/menu_management.html:53
+msgid "菜单管理"
+msgstr ""
+
+#: templates/admin/base.html:269
+msgid "前台首页"
+msgstr ""
+
+#: templates/admin/base.html:274
+msgid "退出登录"
+msgstr ""
+
+#: templates/admin/base.html:284
+msgid "管理后台"
+msgstr ""
+
+#: templates/admin/menu_management.html:55
+msgid "预览首页"
+msgstr ""
+
+#: templates/admin/menu_management.html:74
+msgid "菜单列表"
+msgstr ""
+
+#: templates/admin/menu_management.html:77
+msgid "拖拽菜单项调整顺序，勾选控制是否显示"
+msgstr ""
+
+#: templates/admin/menu_management.html:85
+msgid "保存所有更改"
+msgstr ""
+
+#: templates/admin/menu_management.html:95
+msgid "添加/编辑菜单"
+msgstr ""
+
+#: templates/admin/menu_management.html:102
+msgid "菜单名称"
+msgstr ""
+
+#: templates/admin/menu_management.html:103
+msgid "例如：首页"
+msgstr ""
+
+#: templates/admin/menu_management.html:107
+msgid "链接地址"
+msgstr ""
+
+#: templates/admin/menu_management.html:108
+msgid "例如：/ 或 /articles"
+msgstr ""
+
+#: templates/admin/menu_management.html:109
+msgid "以 / 开头，或完整URL"
+msgstr ""
+
+#: templates/admin/menu_management.html:113
+msgid "图标类名"
+msgstr ""
+
+#: templates/admin/menu_management.html:114
+msgid "例如：fas fa-home"
+msgstr ""
+
+#: templates/admin/menu_management.html:116
+msgid "Font Awesome图标"
+msgstr ""
+
+#: templates/admin/menu_management.html:121
+msgid "父菜单"
+msgstr ""
+
+#: templates/admin/menu_management.html:123
+msgid "顶级菜单"
+msgstr ""
+
+#: templates/admin/menu_management.html:129
+msgid "显示此菜单"
+msgstr ""
+
+#: templates/admin/menu_management.html:134
+msgid "保存菜单"
+msgstr ""
+
+#: templates/admin/menu_management.html:137
+msgid "重置表单"
+msgstr ""
+
+#: templates/admin/menu_management.html:140
+msgid "删除菜单"
+msgstr ""
+

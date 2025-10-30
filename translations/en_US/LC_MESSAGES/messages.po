@@ -1,0 +1,606 @@
+# English (United States) translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-30 10:38+0800\n"
+"PO-Revision-Date: 2025-10-30 09:07+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en_US\n"
+"Language-Team: en_US <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: templates/base.html:6 templates/index.html:3
+msgid "AI-CMS - 智能内容管理系统"
+msgstr "AI-CMS - Intelligent Content Management System"
+
+#: templates/index.html:30
+msgid "欢迎来到AI-CMS"
+msgstr "Welcome to AI-CMS"
+
+#: templates/index.html:31
+msgid "智能内容管理系统，让创作更简单"
+msgstr "Intelligent Content Management System, Making Creation Simpler"
+
+#: templates/index.html:34
+msgid "阅读文章"
+msgstr "Read Articles"
+
+#: templates/index.html:37
+msgid "观看视频"
+msgstr "Watch Videos"
+
+#: templates/index.html:54 templates/index.html:104 templates/index.html:145
+#: templates/index.html:181 templates/index.html:213 templates/index.html:245
+msgid "查看更多"
+msgstr "View More"
+
+#: templates/index.html:91
+msgid "暂无文章"
+msgstr "No Articles Yet"
+
+#: templates/index.html:132
+msgid "暂无视频"
+msgstr "No Videos Yet"
+
+#: templates/index.html:167
+msgid "暂无图片"
+msgstr "No Images Yet"
+
+#: templates/index.html:180
+msgid "最新文章"
+msgstr "Latest Articles"
+
+#: templates/index.html:212
+msgid "最新视频"
+msgstr "Latest Videos"
+
+#: templates/index.html:244
+msgid "最新图片"
+msgstr "Latest Images"
+
+#: templates/admin/base.html:6
+msgid "CMS管理后台"
+msgstr "CMS Admin Panel"
+
+#: templates/admin/base.html:218
+msgid "AI-CMS管理后台"
+msgstr "AI-CMS Admin Dashboard"
+
+#: templates/admin/base.html:224
+msgid "仪表盘"
+msgstr "Dashboard"
+
+#: templates/admin/base.html:229
+msgid "文章管理"
+msgstr "Articles Management"
+
+#: templates/admin/base.html:234
+msgid "视频管理"
+msgstr "Videos Management"
+
+#: templates/admin/base.html:239
+msgid "图片管理"
+msgstr "Images Management"
+
+#: templates/admin/base.html:245
+msgid "版面管理"
+msgstr "Layout Management"
+
+#: templates/admin/base.html:252
+msgid "首页配置"
+msgstr "Homepage Configuration"
+
+#: templates/admin/base.html:257
+msgid "动态页面"
+msgstr "Dynamic Pages"
+
+#: templates/admin/base.html:262 templates/admin/menu_management.html:3
+#: templates/admin/menu_management.html:53
+msgid "菜单管理"
+msgstr "Menu Management"
+
+#: templates/admin/base.html:269
+msgid "前台首页"
+msgstr "Frontend Homepage"
+
+#: templates/admin/base.html:274
+msgid "退出登录"
+msgstr "Logout"
+
+#: templates/admin/base.html:284
+msgid "管理后台"
+msgstr "Admin Backend"
+
+#: templates/admin/menu_management.html:55
+msgid "预览首页"
+msgstr "Preview Homepage"
+
+#: templates/admin/menu_management.html:74
+msgid "菜单列表"
+msgstr "Menu List"
+
+#: templates/admin/menu_management.html:77
+msgid "拖拽菜单项调整顺序，勾选控制是否显示"
+msgstr "Drag menu items to reorder, check to control visibility"
+
+#: templates/admin/menu_management.html:85
+msgid "保存所有更改"
+msgstr "Save All Changes"
+
+#: templates/admin/menu_management.html:95
+msgid "添加/编辑菜单"
+msgstr "Add/Edit Menu"
+
+#: templates/admin/menu_management.html:102
+msgid "菜单名称"
+msgstr "Menu Name"
+
+#: templates/admin/menu_management.html:103
+msgid "例如：首页"
+msgstr "e.g., Home"
+
+#: templates/admin/menu_management.html:107
+msgid "链接地址"
+msgstr "Link URL"
+
+#: templates/admin/menu_management.html:108
+msgid "例如：/ 或 /articles"
+msgstr "e.g., / or /articles"
+
+#: templates/admin/menu_management.html:109
+msgid "以 / 开头，或完整URL"
+msgstr "Start with / or use full URL"
+
+#: templates/admin/menu_management.html:113
+msgid "图标类名"
+msgstr "Icon Class"
+
+#: templates/admin/menu_management.html:114
+msgid "例如：fas fa-home"
+msgstr "e.g., fas fa-home"
+
+#: templates/admin/menu_management.html:116
+msgid "Font Awesome图标"
+msgstr "Font Awesome Icons"
+
+#: templates/admin/menu_management.html:121
+msgid "父菜单"
+msgstr "Parent Menu"
+
+#: templates/admin/menu_management.html:123
+msgid "顶级菜单"
+msgstr "Top Level Menu"
+
+#: templates/admin/menu_management.html:129
+msgid "显示此菜单"
+msgstr "Show This Menu"
+
+#: templates/admin/menu_management.html:134
+msgid "保存菜单"
+msgstr "Save Menu"
+
+#: templates/admin/menu_management.html:137
+msgid "重置表单"
+msgstr "Reset Form"
+
+#: templates/admin/menu_management.html:140
+msgid "删除菜单"
+msgstr "Delete Menu"
+
+#~ msgid "欢迎来到AI-CMS"
+#~ msgstr "Welcome to AI-CMS"
+
+#~ msgid "智能内容管理系统，让创作更简单"
+#~ msgstr "Intelligent Content Management System that makes creation easier"
+
+#~ msgid "阅读文章"
+#~ msgstr "Read Articles"
+
+#~ msgid "观看视频"
+#~ msgstr "Watch Videos"
+
+#~ msgid "查看更多"
+#~ msgstr "View More"
+
+#~ msgid "阅读更多"
+#~ msgstr "Read More"
+
+#~ msgid "暂无文章"
+#~ msgstr "No Articles Yet"
+
+#~ msgid "暂无视频"
+#~ msgstr "No Videos Yet"
+
+#~ msgid "查看大图"
+#~ msgstr "View Full Size"
+
+#~ msgid "暂无图片"
+#~ msgstr "No Images Yet"
+
+#~ msgid "最新文章"
+#~ msgstr "Latest Articles"
+
+#~ msgid "最新视频"
+#~ msgstr "Latest Videos"
+
+#~ msgid "最新图片"
+#~ msgstr "Latest Images"
+
+#~ msgid "CMS管理后台"
+#~ msgstr "CMS Admin Panel"
+
+#~ msgid "AI-CMS管理后台"
+#~ msgstr "AI-CMS Admin Panel"
+
+#~ msgid "仪表盘"
+#~ msgstr "Dashboard"
+
+#~ msgid "文章管理"
+#~ msgstr "Article Management"
+
+#~ msgid "视频管理"
+#~ msgstr "Video Management"
+
+#~ msgid "图片管理"
+#~ msgstr "Image Management"
+
+#~ msgid "版面管理"
+#~ msgstr "Layout Management"
+
+#~ msgid "首页配置"
+#~ msgstr "Homepage Configuration"
+
+#~ msgid "动态页面"
+#~ msgstr "Dynamic Pages"
+
+#~ msgid "菜单管理"
+#~ msgstr "Menu Management"
+
+#~ msgid "前台首页"
+#~ msgstr "Frontend Homepage"
+
+#~ msgid "退出登录"
+#~ msgstr "Logout"
+
+#~ msgid "管理后台"
+#~ msgstr "Admin Panel"
+
+#~ msgid "关于CMS"
+#~ msgstr "About CMS"
+
+#~ msgid "这是一个功能完整的内容管理系统，支持文章、视频和图片管理。"
+#~ msgstr ""
+#~ "This is a fully functional content "
+#~ "management system supporting articles, videos,"
+#~ " and image management."
+
+#~ msgid "联系我们"
+#~ msgstr "Contact Us"
+
+#~ msgid "保留所有权利"
+#~ msgstr "All rights reserved"
+
+#~ msgid "{{ item.label }}"
+#~ msgstr "{{ item.label }}"
+
+#~ msgid "最新"
+#~ msgstr "Latest"
+
+#~ msgid "热门"
+#~ msgstr "Popular"
+
+#~ msgid "推荐"
+#~ msgstr "Recommended"
+
+#~ msgid "置顶"
+#~ msgstr "Pinned"
+
+#~ msgid "草稿"
+#~ msgstr "Draft"
+
+#~ msgid "已发布"
+#~ msgstr "Published"
+
+#~ msgid "已归档"
+#~ msgstr "Archived"
+
+#~ msgid "其他"
+#~ msgstr "Other"
+
+#~ msgid "教程"
+#~ msgstr "Tutorial"
+
+#~ msgid "新闻"
+#~ msgstr "News"
+
+#~ msgid "产品"
+#~ msgstr "Product"
+
+#~ msgid "评测"
+#~ msgstr "Review"
+
+#~ msgid "经验"
+#~ msgstr "Experience"
+
+#~ msgid "观点"
+#~ msgstr "Opinion"
+
+#~ msgid "故事"
+#~ msgstr "Story"
+
+#~ msgid "无描述"
+#~ msgstr "No Description"
+
+#~ msgid "文章列表"
+#~ msgstr "Article List"
+
+#~ msgid "创建文章"
+#~ msgstr "Create Article"
+
+#~ msgid "标题"
+#~ msgstr "Title"
+
+#~ msgid "状态"
+#~ msgstr "Status"
+
+#~ msgid "创建时间"
+#~ msgstr "Created"
+
+#~ msgid "操作"
+#~ msgstr "Actions"
+
+#~ msgid "编辑"
+#~ msgstr "Edit"
+
+#~ msgid "删除"
+#~ msgstr "Delete"
+
+#~ msgid "删除确认"
+#~ msgstr "Confirm Delete"
+
+#~ msgid "确定要删除吗？此操作不可撤销。"
+#~ msgstr "Are you sure you want to delete? This action cannot be undone."
+
+#~ msgid "取消"
+#~ msgstr "Cancel"
+
+#~ msgid "确认删除"
+#~ msgstr "Confirm Delete"
+
+#~ msgid "暂无数据"
+#~ msgstr "No Data"
+
+#~ msgid "仪表盘概览"
+#~ msgstr "Dashboard Overview"
+
+#~ msgid "总文章数"
+#~ msgstr "Total Articles"
+
+#~ msgid "总视频数"
+#~ msgstr "Total Videos"
+
+#~ msgid "总图片数"
+#~ msgstr "Total Images"
+
+#~ msgid "菜单项数"
+#~ msgstr "Menu Items"
+
+#~ msgid "首页配置管理"
+#~ msgstr "Homepage Configuration Management"
+
+#~ msgid "最新动态"
+#~ msgstr "Latest Activity"
+
+#~ msgid "暂无活动记录"
+#~ msgstr "No Activity Records"
+
+#~ msgid "管理员登录"
+#~ msgstr "Admin Login"
+
+#~ msgid "用户名"
+#~ msgstr "Username"
+
+#~ msgid "密码"
+#~ msgstr "Password"
+
+#~ msgid "登录"
+#~ msgstr "Login"
+
+#~ msgid "默认用户名和密码为：admin / admin"
+#~ msgstr "Default username and password: admin / admin"
+
+#~ msgid "编辑文章"
+#~ msgstr "Edit Article"
+
+#~ msgid "文章标题"
+#~ msgstr "Article Title"
+
+#~ msgid "文章摘要"
+#~ msgstr "Article Summary"
+
+#~ msgid "分类"
+#~ msgstr "Category"
+
+#~ msgid "标签（用逗号分隔）"
+#~ msgstr "Tags (comma-separated)"
+
+#~ msgid "封面图片"
+#~ msgstr "Cover Image"
+
+#~ msgid "选择图片"
+#~ msgstr "Select Image"
+
+#~ msgid "上传图片"
+#~ msgstr "Upload Image"
+
+#~ msgid "保存"
+#~ msgstr "Save"
+
+#~ msgid "发布"
+#~ msgstr "Publish"
+
+#~ msgid "视频列表"
+#~ msgstr "Video List"
+
+#~ msgid "添加视频"
+#~ msgstr "Add Video"
+
+#~ msgid "类型"
+#~ msgstr "Type"
+
+#~ msgid "编辑视频"
+#~ msgstr "Edit Video"
+
+#~ msgid "视频标题"
+#~ msgstr "Video Title"
+
+#~ msgid "视频描述"
+#~ msgstr "Video Description"
+
+#~ msgid "视频文件"
+#~ msgstr "Video File"
+
+#~ msgid "视频链接"
+#~ msgstr "Video URL"
+
+#~ msgid "图片列表"
+#~ msgstr "Image List"
+
+#~ msgid "文件名"
+#~ msgstr "Filename"
+
+#~ msgid "上传时间"
+#~ msgstr "Uploaded"
+
+#~ msgid "图片标题"
+#~ msgstr "Image Title"
+
+#~ msgid "图片分类"
+#~ msgstr "Image Category"
+
+#~ msgid "图片标签"
+#~ msgstr "Image Tags"
+
+#~ msgid "选择图片文件"
+#~ msgstr "Select Image File"
+
+#~ msgid "上传"
+#~ msgstr "Upload"
+
+#~ msgid "首页布局配置"
+#~ msgstr "Homepage Layout Configuration"
+
+#~ msgid "Hero区域"
+#~ msgstr "Hero Section"
+
+#~ msgid "副标题"
+#~ msgstr "Subtitle"
+
+#~ msgid "显示按钮"
+#~ msgstr "Show Buttons"
+
+#~ msgid "按钮1文本"
+#~ msgstr "Button 1 Text"
+
+#~ msgid "按钮1链接"
+#~ msgstr "Button 1 Link"
+
+#~ msgid "按钮2文本"
+#~ msgstr "Button 2 Text"
+
+#~ msgid "按钮2链接"
+#~ msgstr "Button 2 Link"
+
+#~ msgid "内容区域"
+#~ msgstr "Content Sections"
+
+#~ msgid "启用文章区域"
+#~ msgstr "Enable Article Section"
+
+#~ msgid "文章区域标题"
+#~ msgstr "Article Section Title"
+
+#~ msgid "文章显示数量"
+#~ msgstr "Article Display Count"
+
+#~ msgid "启用视频区域"
+#~ msgstr "Enable Video Section"
+
+#~ msgid "视频区域标题"
+#~ msgstr "Video Section Title"
+
+#~ msgid "视频显示数量"
+#~ msgstr "Video Display Count"
+
+#~ msgid "启用图片区域"
+#~ msgstr "Enable Image Section"
+
+#~ msgid "图片区域标题"
+#~ msgstr "Image Section Title"
+
+#~ msgid "图片显示数量"
+#~ msgstr "Image Display Count"
+
+#~ msgid "保存配置"
+#~ msgstr "Save Configuration"
+
+#~ msgid "添加菜单项"
+#~ msgstr "Add Menu Item"
+
+#~ msgid "菜单标签"
+#~ msgstr "Menu Label"
+
+#~ msgid "菜单URL"
+#~ msgstr "Menu URL"
+
+#~ msgid "图标（Font Awesome类名）"
+#~ msgstr "Icon (Font Awesome class name)"
+
+#~ msgid "父级菜单"
+#~ msgstr "Parent Menu"
+
+#~ msgid "显示顺序"
+#~ msgstr "Display Order"
+
+#~ msgid "是否显示"
+#~ msgstr "Visible"
+
+#~ msgid "添加"
+#~ msgstr "Add"
+
+#~ msgid "当前菜单结构"
+#~ msgstr "Current Menu Structure"
+
+#~ msgid "标签"
+#~ msgstr "Label"
+
+#~ msgid "URL"
+#~ msgstr "URL"
+
+#~ msgid "图标"
+#~ msgstr "Icon"
+
+#~ msgid "顺序"
+#~ msgstr "Order"
+
+#~ msgid "显示"
+#~ msgstr "Visible"
+
+#~ msgid "所有文章"
+#~ msgstr "All Articles"
+
+#~ msgid "所有视频"
+#~ msgstr "All Videos"
+
+#~ msgid "所有图片"
+#~ msgstr "All Images"
+

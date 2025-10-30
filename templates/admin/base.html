@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ current_lang or 'zh_CN' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CMS管理后台{% endblock %}</title>
+    <title>{% block title %}{% trans %}CMS管理后台{% endtrans %}{% endblock %}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -215,63 +215,63 @@
     <!-- 侧边栏 -->
     <div class="sidebar">
         <div class="sidebar-brand">
-            <i class="fas fa-tachometer-alt me-2"></i>AI-CMS管理后台
+            <i class="fas fa-tachometer-alt me-2"></i>{% trans %}AI-CMS管理后台{% endtrans %}
         </div>
 
         <ul class="sidebar-nav">
             <li>
                 <a href="{{ url_for('admin_dashboard') }}" {% if request.endpoint == 'admin_dashboard' %}class="active"{% endif %}>
-                    <i class="fas fa-home"></i>仪表盘
+                    <i class="fas fa-home"></i>{% trans %}仪表盘{% endtrans %}
                 </a>
             </li>
             <li>
                 <a href="{{ url_for('admin_articles') }}" {% if 'admin_articles' in request.endpoint %}class="active"{% endif %}>
-                    <i class="fas fa-file-alt"></i>文章管理
+                    <i class="fas fa-file-alt"></i>{% trans %}文章管理{% endtrans %}
                 </a>
             </li>
             <li>
                 <a href="{{ url_for('admin_videos') }}" {% if 'admin_videos' in request.endpoint %}class="active"{% endif %}>
-                    <i class="fas fa-video"></i>视频管理
+                    <i class="fas fa-video"></i>{% trans %}视频管理{% endtrans %}
                 </a>
             </li>
             <li>
                 <a href="{{ url_for('admin_images') }}" {% if 'admin_images' in request.endpoint %}class="active"{% endif %}>
-                    <i class="fas fa-images"></i>图片管理
+                    <i class="fas fa-images"></i>{% trans %}图片管理{% endtrans %}
                 </a>
             </li>
             <li class="has-submenu {% if 'admin_homepage_config' in request.endpoint or 'admin_dynamic_pages' in request.endpoint or 'admin_menu_management' in request.endpoint %}expanded{% endif %}">
                 <a class="submenu-toggle" href="#" onclick="toggleSubmenu(this); return false;">
                     <span>
-                        <i class="fas fa-th-large"></i>版面管理
+                        <i class="fas fa-th-large"></i>{% trans %}版面管理{% endtrans %}
                     </span>
                     <i class="fas fa-chevron-right submenu-arrow"></i>
                 </a>
                 <ul class="submenu">
                     <li>
                         <a href="{{ url_for('admin_homepage_config') }}" {% if 'admin_homepage_config' in request.endpoint %}class="active"{% endif %}>
-                            <i class="fas fa-th-large"></i>首页配置
+                            <i class="fas fa-th-large"></i>{% trans %}首页配置{% endtrans %}
                         </a>
                     </li>
                     <li>
                         <a href="{{ url_for('admin_dynamic_pages') }}" {% if 'admin_dynamic_pages' in request.endpoint %}class="active"{% endif %}>
-                            <i class="fas fa-puzzle-piece"></i>动态页面
+                            <i class="fas fa-puzzle-piece"></i>{% trans %}动态页面{% endtrans %}
                         </a>
                     </li>
                     <li>
                         <a href="{{ url_for('admin_menu_management') }}" {% if 'admin_menu_management' in request.endpoint %}class="active"{% endif %}>
-                            <i class="fas fa-bars"></i>菜单管理
+                            <i class="fas fa-bars"></i>{% trans %}菜单管理{% endtrans %}
                         </a>
                     </li>
                 </ul>
             </li>
             <li>
                 <a href="{{ url_for('index') }}" target="_blank">
-                    <i class="fas fa-external-link-alt"></i>前台首页
+                    <i class="fas fa-external-link-alt"></i>{% trans %}前台首页{% endtrans %}
                 </a>
             </li>
             <li>
                 <a href="{{ url_for('admin_logout') }}">
-                    <i class="fas fa-sign-out-alt"></i>退出登录
+                    <i class="fas fa-sign-out-alt"></i>{% trans %}退出登录{% endtrans %}
                 </a>
             </li>
         </ul>
@@ -281,8 +281,25 @@
     <div class="main-content">
         <div class="top-bar">
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">{% block page_title %}管理后台{% endblock %}</h4>
-                <div>
+                <h4 class="mb-0">{% block page_title %}{% trans %}管理后台{% endtrans %}{% endblock %}</h4>
+                <div class="d-flex align-items-center">
+                    <!-- 语言切换器 -->
+                    <div class="dropdown me-3">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe me-1"></i>
+                            {% if current_lang == 'en' %}English{% else %}中文{% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% for lang_code, lang_name in LANGUAGES.items() %}
+                            <li>
+                                <a class="dropdown-item {% if lang_code == current_lang %}active{% endif %}"
+                                   href="{{ url_for('set_language', lang=lang_code) }}">
+                                    {% if lang_code == 'en' %}🇬🇧 English{% else %}🇨🇳 中文{% endif %}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% block page_actions %}{% endblock %}
                 </div>
             </div>

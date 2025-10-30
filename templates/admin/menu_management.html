@@ -1,6 +1,6 @@
 {% extends "admin/base.html" %}
 
-{% block title %}菜单管理 - AI-CMS{% endblock %}
+{% block title %}{% trans %}菜单管理{% endtrans %} - AI-CMS{% endblock %}
 
 {% block head %}
 <style>
@@ -50,9 +50,9 @@
 {% block content %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-bars me-2"></i>菜单管理</h1>
+        <h1><i class="fas fa-bars me-2"></i>{% trans %}菜单管理{% endtrans %}</h1>
         <a href="{{ url_for('index') }}" target="_blank" class="btn btn-outline-primary">
-            <i class="fas fa-external-link-alt me-2"></i>预览首页
+            <i class="fas fa-external-link-alt me-2"></i>{% trans %}预览首页{% endtrans %}
         </a>
     </div>
 
@@ -71,10 +71,10 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>菜单列表</h5>
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>{% trans %}菜单列表{% endtrans %}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-3">拖拽菜单项调整顺序，勾选控制是否显示</p>
+                    <p class="text-muted mb-3">{% trans %}拖拽菜单项调整顺序，勾选控制是否显示{% endtrans %}</p>
 
                     <div id="menus-list">
                         <!-- Menus will be loaded here -->
@@ -82,7 +82,7 @@
 
                     <div class="mt-3">
                         <button type="button" class="btn btn-success w-100" onclick="saveMenus()">
-                            <i class="fas fa-save me-2"></i>保存所有更改
+                            <i class="fas fa-save me-2"></i>{% trans %}保存所有更改{% endtrans %}
                         </button>
                     </div>
                 </div>
@@ -92,52 +92,52 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>添加/编辑菜单</h5>
+                    <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>{% trans %}添加/编辑菜单{% endtrans %}</h5>
                 </div>
                 <div class="card-body">
                     <form id="menu-form">
                         <input type="hidden" id="menu-id" value="">
 
                         <div class="mb-3">
-                            <label class="form-label">菜单名称 <span class="text-danger">*</span></label>
-                            <input type="text" id="menu-label" class="form-control" placeholder="例如：首页" required>
+                            <label class="form-label">{% trans %}菜单名称{% endtrans %} <span class="text-danger">*</span></label>
+                            <input type="text" id="menu-label" class="form-control" placeholder="{% trans %}例如：首页{% endtrans %}" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">链接地址 <span class="text-danger">*</span></label>
-                            <input type="text" id="menu-url" class="form-control" placeholder="例如：/ 或 /articles" required>
-                            <small class="form-text text-muted">以 / 开头，或完整URL</small>
+                            <label class="form-label">{% trans %}链接地址{% endtrans %} <span class="text-danger">*</span></label>
+                            <input type="text" id="menu-url" class="form-control" placeholder="{% trans %}例如：/ 或 /articles{% endtrans %}" required>
+                            <small class="form-text text-muted">{% trans %}以 / 开头，或完整URL{% endtrans %}</small>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">图标类名</label>
-                            <input type="text" id="menu-icon" class="form-control" placeholder="例如：fas fa-home">
+                            <label class="form-label">{% trans %}图标类名{% endtrans %}</label>
+                            <input type="text" id="menu-icon" class="form-control" placeholder="{% trans %}例如：fas fa-home{% endtrans %}">
                             <small class="form-text text-muted">
-                                <a href="https://fontawesome.com/icons" target="_blank">Font Awesome图标</a>
+                                <a href="https://fontawesome.com/icons" target="_blank">{% trans %}Font Awesome图标{% endtrans %}</a>
                             </small>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">父菜单</label>
+                            <label class="form-label">{% trans %}父菜单{% endtrans %}</label>
                             <select id="menu-parent" class="form-select">
-                                <option value="">-- 顶级菜单 --</option>
+                                <option value="">-- {% trans %}顶级菜单{% endtrans %} --</option>
                             </select>
                         </div>
 
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="menu-visible" checked>
-                            <label class="form-check-label">显示此菜单</label>
+                            <label class="form-check-label">{% trans %}显示此菜单{% endtrans %}</label>
                         </div>
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>保存菜单
+                                <i class="fas fa-save me-2"></i>{% trans %}保存菜单{% endtrans %}
                             </button>
                             <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                                <i class="fas fa-undo me-2"></i>重置表单
+                                <i class="fas fa-undo me-2"></i>{% trans %}重置表单{% endtrans %}
                             </button>
                             <button type="button" class="btn btn-danger" id="delete-btn" onclick="deleteMenu()" style="display: none;">
-                                <i class="fas fa-trash me-2"></i>删除菜单
+                                <i class="fas fa-trash me-2"></i>{% trans %}删除菜单{% endtrans %}
                             </button>
                         </div>
                     </form>
@@ -168,12 +168,16 @@
             })
             .catch(error => {
                 console.error('Error loading menus:', error);
-                alert('加载菜单失败');
+                alert('加载菜单失败: ' + error.message);
             });
     }
 
     function renderMenus() {
         const container = document.getElementById('menus-list');
+        if (!container) {
+            console.error('menus-list container not found!');
+            return;
+        }
         container.innerHTML = '';
 
         menus.forEach(menu => {
@@ -233,30 +237,19 @@
         sortables.forEach(sortable => sortable.destroy());
         sortables = [];
 
-        // 为每个层级的菜单创建sortable
-        const levels = {};
-        document.querySelectorAll('.menu-card').forEach(card => {
-            const level = card.dataset.level;
-            if (!levels[level]) {
-                levels[level] = [];
-            }
-            levels[level].push(card);
-        });
-
-        for (const level in levels) {
-            const cards = levels[level];
-            if (cards.length > 1) {
-                const sortable = new Sortable(cards, {
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    dragClass: 'dragging',
-                    handle: '.drag-handle',
-                    onEnd: function(evt) {
-                        updateMenuOrder();
-                    }
-                });
-                sortables.push(sortable);
-            }
+        // 直接对menus-list容器创建sortable
+        const container = document.getElementById('menus-list');
+        if (container && container.children.length > 0) {
+            const sortable = new Sortable(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'dragging',
+                handle: '.drag-handle',
+                onEnd: function(evt) {
+                    updateMenuOrder();
+                }
+            });
+            sortables.push(sortable);
         }
     }
 

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_from_directory, abort
 from flask_sqlalchemy import SQLAlchemy
+from flask_babel import Babel, gettext, ngettext
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, Article, Video, Image, DynamicPage, ContentBlock, HomepageConfig, MenuItem
@@ -64,6 +65,62 @@ app.config['ALLOWED_EXTENSIONS'] = {
 
 # 初始化数据库
 db.init_app(app)
+
+# ==================== 多语言支持配置 ====================
+
+# 支持的语言
+LANGUAGES = {
+    'zh_CN': '中文',
+    'en': 'English'
+}
+
+# 菜单翻译映射
+MENU_TRANSLATIONS = {
+    'zh_CN': {'首页': '首页', '文章': '文章', '视频': '视频', '图片': '图片', '其它': '其它'},
+    'en': {'首页': 'Home', '文章': 'Articles', '视频': 'Videos', '图片': 'Images', '其它': 'Others'}
+}
+
+# 首页配置翻译映射
+HOMEPAGE_CONFIG_TRANSLATIONS = {
+    'zh_CN': {
+        '欢迎来到AI-CMS': '欢迎来到AI-CMS',
+        '智能内容管理系统，让创作更简单': '智能内容管理系统，让创作更简单',
+        '阅读文章': '阅读文章',
+        '观看视频': '观看视频',
+        '最新文章': '最新文章',
+        '最新视频': '最新视频',
+        '最新图片': '最新图片',
+    },
+    'en': {
+        '欢迎来到AI-CMS': 'Welcome to AI-CMS',
+        '智能内容管理系统，让创作更简单': 'Intelligent Content Management System that makes creation easier',
+        '阅读文章': 'Read Articles',
+        '观看视频': 'Watch Videos',
+        '最新文章': 'Latest Articles',
+        '最新视频': 'Latest Videos',
+        '最新图片': 'Latest Images',
+    }
+}
+
+# 语言检测函数
+def get_locale():
+    """检测当前语言优先级：URL参数 > Session > 浏览器Accept-Language > 默认中文"""
+    # 优先级1: URL参数 (通过/set_language/<lang>设置)
+    if 'lang' in session:
+        return session['lang']
+
+    # 优先级2: 浏览器Accept-Language头
+    accept_language = request.headers.get('Accept-Language', '')
+    if accept_language:
+        # 简单检查是否包含英文
+        if accept_language.lower().startswith('en'):
+            return 'en'
+
+    # 优先级3: 默认中文
+    return 'zh_CN'
+
+# 初始化Babel
+babel = Babel(app, locale_selector=get_locale)
 
 # 初始化首页配置（如果不存在）
 def init_homepage_config():
@@ -185,16 +242,74 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# 全局模板上下文 - 添加菜单数据
+# ==================== 语言切换路由 ====================
+
+@app.route('/set_language/<lang>')
+def set_language(lang):
+    """设置语言并重定向到上一页"""
+    if lang in LANGUAGES:
+        session['lang'] = lang
+        referrer = request.referrer or url_for('index')
+        return redirect(referrer)
+    else:
+        flash('不支持的语言', 'error')
+        return redirect(url_for('index'))
+
+# 全局模板上下文 - 添加菜单数据和语言选项
 @app.context_processor
 def inject_menu_items():
-    """为所有模板注入菜单数据"""
+    """为所有模板注入菜单数据和语言选项"""
     try:
+        current_language = get_locale()
         menu_items = MenuItem.query.filter_by(parent_id=None, visible=True).order_by(MenuItem.order).all()
-        return {'menu_items': [item.to_dict() for item in menu_items]}
+
+        # 翻译菜单项
+        translated_menu = []
+        for item in menu_items:
+            translated_label = MENU_TRANSLATIONS.get(current_language, {}).get(item.label, item.label)
+
+            # 获取子菜单
+            children = MenuItem.query.filter_by(parent_id=item.id, visible=True).order_by(MenuItem.order).all()
+            translated_children = []
+            for child in children:
+                child_translated_label = MENU_TRANSLATIONS.get(current_language, {}).get(child.label, child.label)
+                child_dict = child.to_dict() if hasattr(child, 'to_dict') else {
+                    'id': child.id,
+                    'label': child_translated_label,
+                    'url': child.url,
+                    'icon': child.icon,
+                    'order': child.order,
+                    'visible': child.visible,
+                    'parent_id': child.parent_id
+                }
+                translated_children.append(child_dict)
+
+            # 主菜单项
+            item_dict = item.to_dict() if hasattr(item, 'to_dict') else {
+                'id': item.id,
+                'label': translated_label,
+                'url': item.url,
+                'icon': item.icon,
+                'order': item.order,
+                'visible': item.visible,
+                'parent_id': item.parent_id
+            }
+            item_dict['label'] = translated_label
+            item_dict['children'] = translated_children
+            translated_menu.append(item_dict)
+
+        return {
+            'menu_items': translated_menu,
+            'LANGUAGES': LANGUAGES,
+            'current_lang': current_language
+        }
     except:
-        # 如果数据库表还不存在，返回空列表
-        return {'menu_items': []}
+        # 如果数据库表还不存在，返回空列表，但必须包含LANGUAGES
+        return {
+            'menu_items': [],
+            'LANGUAGES': LANGUAGES,
+            'current_lang': get_locale()
+        }
 
 # 生成唯一slug
 def generate_slug(title, model):
@@ -226,6 +341,24 @@ def index():
     config_data = config.get_config()
     sections = config_data.get('sections', [])
     hero_config = config_data.get('hero', None)
+
+    # 应用翻译到sections
+    current_language = get_locale()
+    for section in sections:
+        if 'title' in section:
+            section['title'] = HOMEPAGE_CONFIG_TRANSLATIONS.get(current_language, {}).get(
+                section['title'], section['title']
+            )
+
+    # 应用翻译到hero_config
+    if hero_config:
+        translated_hero = {}
+        for key, value in hero_config.items():
+            if key in ['title', 'subtitle', 'button1_text', 'button2_text']:
+                translated_hero[key] = HOMEPAGE_CONFIG_TRANSLATIONS.get(current_language, {}).get(value, value)
+            else:
+                translated_hero[key] = value
+        hero_config = translated_hero
 
     # 根据配置获取数据
     data = {}

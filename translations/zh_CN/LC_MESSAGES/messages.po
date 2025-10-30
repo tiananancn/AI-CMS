@@ -1,0 +1,114 @@
+# Chinese (Simplified, China) translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-30 10:13+0800\n"
+"PO-Revision-Date: 2025-10-30 07:07+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: zh_Hans_CN\n"
+"Language-Team: zh_Hans_CN <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: templates/base.html:6
+msgid "AI-CMS - 智能内容管理系统"
+msgstr ""
+
+#~ msgid "关于CMS"
+#~ msgstr "关于CMS"
+
+#~ msgid "这是一个功能完整的内容管理系统，支持文章、视频和图片管理。"
+#~ msgstr "这是一个功能完整的内容管理系统，支持文章、视频和图片管理。"
+
+#~ msgid "联系我们"
+#~ msgstr "联系我们"
+
+#~ msgid "保留所有权利"
+#~ msgstr "保留所有权利"
+
+#~ msgid "欢迎来到AI-CMS"
+#~ msgstr ""
+
+#~ msgid "智能内容管理系统，让创作更简单"
+#~ msgstr ""
+
+#~ msgid "阅读文章"
+#~ msgstr ""
+
+#~ msgid "观看视频"
+#~ msgstr ""
+
+#~ msgid "查看更多"
+#~ msgstr ""
+
+#~ msgid "阅读更多"
+#~ msgstr ""
+
+#~ msgid "暂无文章"
+#~ msgstr ""
+
+#~ msgid "暂无视频"
+#~ msgstr ""
+
+#~ msgid "查看大图"
+#~ msgstr ""
+
+#~ msgid "暂无图片"
+#~ msgstr ""
+
+#~ msgid "最新文章"
+#~ msgstr ""
+
+#~ msgid "最新视频"
+#~ msgstr ""
+
+#~ msgid "最新图片"
+#~ msgstr ""
+
+#~ msgid "CMS管理后台"
+#~ msgstr "管理后台"
+
+#~ msgid "AI-CMS管理后台"
+#~ msgstr ""
+
+#~ msgid "仪表盘"
+#~ msgstr ""
+
+#~ msgid "文章管理"
+#~ msgstr ""
+
+#~ msgid "视频管理"
+#~ msgstr ""
+
+#~ msgid "图片管理"
+#~ msgstr ""
+
+#~ msgid "版面管理"
+#~ msgstr ""
+
+#~ msgid "首页配置"
+#~ msgstr ""
+
+#~ msgid "动态页面"
+#~ msgstr ""
+
+#~ msgid "菜单管理"
+#~ msgstr ""
+
+#~ msgid "前台首页"
+#~ msgstr ""
+
+#~ msgid "退出登录"
+#~ msgstr ""
+
+#~ msgid "管理后台"
+#~ msgstr "管理后台"
+

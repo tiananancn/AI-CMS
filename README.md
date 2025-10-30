@@ -1,104 +1,136 @@
-# 我的CMS系统
+# AI-CMS Intelligent Content Management System 🎯
 
-一个基于Flask开发的轻量级内容管理系统（CMS），支持文章、视频和图片管理，具有美观的后台管理界面和灵活的前台展示功能。
+[![English](https://img.shields.io/badge/Language-English-blue.svg)](README.md)
+[![中文](https://img.shields.io/badge/语言-中文-red.svg)](README_zh.md)
+[![Python](https://img.shields.io/badge/Python-3.7+-green.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0.0-lightgrey.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 功能特性
+A lightweight yet powerful Content Management System (CMS) built with Flask, featuring article, video, and image management with a beautiful admin interface and flexible frontend display.
 
-### 🎨 前台功能
-- **首页展示**：展示最新的文章、视频和图片
-- **文章系统**：
-  - 文章列表页（支持分页和分类筛选）
-  - 文章详情页（支持富文本内容）
-  - 文章分类和标签系统
-- **视频系统**：
-  - 视频列表页（支持分页和分类筛选）
-  - 视频详情页（支持本地视频和外部链接）
-  - 视频分类和标签系统
-- **图片系统**：
-  - 图片网格展示
-  - 图片详情页
-  - 图片下载功能
-  - 图片模态框预览
+## ✨ Features
 
-### 🔧 后台管理
-- **仪表盘**：显示系统统计数据
-- **文章管理**：
-  - 创建、编辑、删除文章
-  - 支持富文本编辑器（Quill）
-  - 文章状态管理（发布/草稿）
-  - 分类和标签管理
-- **视频管理**：
-  - 添加、编辑、删除视频
-  - 支持本地视频文件和外部链接（YouTube、Bilibili等）
-  - 视频状态管理
-  - 分类和标签管理
-- **图片管理**：
-  - 图片上传功能
-  - 图片预览
-  - 图片信息展示
-  - 分类和标签管理
+### 🎨 Frontend
+- **Homepage Display**: Show latest articles, videos, and images
+- **Article System**:
+  - Article listing (pagination and category filtering)
+  - Article detail pages with rich text content
+  - Category and tag system
+  - Cover image support
+- **Video System**:
+  - Video listing (pagination and category filtering)
+  - Video detail pages (local files and external links)
+  - Category and tag system
+- **Image System**:
+  - Grid gallery display
+  - Image detail pages
+  - Image download functionality
+  - Modal preview
 
-### 📊 API接口
-系统提供完整的RESTful API接口：
-- `GET /api/articles` - 获取所有文章
-- `GET /api/articles/<slug>` - 获取特定文章
-- `GET /api/videos` - 获取所有视频
-- `GET /api/videos/<slug>` - 获取特定视频
-- `GET /api/images` - 获取所有图片
-- `GET /api/images/<slug>` - 获取特定图片
+### 🛠️ Admin Panel
+- **Dashboard**: System statistics display
+- **Article Management**:
+  - Create, edit, delete articles
+  - Rich text editor (Quill.js)
+  - Article status management (published/draft)
+  - Category and tag management
+  - Cover image picker
+- **Video Management**:
+  - Add, edit, delete videos
+  - Support local video files and external links (YouTube, Bilibili, etc.)
+  - Video status management
+  - Category and tag management
+- **Image Management**:
+  - Image upload functionality
+  - Image preview
+  - Image information display
+  - Category and tag management
+- **Menu Management**: Dynamic navigation menu with drag-and-drop ordering
+- **Multilingual Support**: Built-in language switching between Chinese and English
 
-## 技术栈
+### 🌍 Multilingual Support
+- **Built-in Language Switching**: Switch freely between Chinese and English
+- **Auto-detection**: Automatic detection of browser language preferences
+- **Session Persistence**: Save user language preferences
+- **Translation Management**: Flask-Babel based translation system
 
-- **后端框架**：Flask
-- **数据库**：SQLite
-- **前端框架**：Bootstrap 5
-- **富文本编辑器**：Quill.js
-- **图标**：Font Awesome
+### 📊 RESTful API
+Complete RESTful API endpoints:
+- `GET /api/articles` - Get all articles
+- `GET /api/articles/<slug>` - Get specific article
+- `GET /api/videos` - Get all videos
+- `GET /api/videos/<slug>` - Get specific video
+- `GET /api/images` - Get all images
+- `GET /api/images/<slug>` - Get specific image
+- `GET /api/menu-items` - Get menu items
+- `GET /api/admin/menu-items` - Get all menu items (admin)
 
-## 安装说明
+## 🚀 Technology Stack
 
-### 环境要求
+- **Backend Framework**: Flask 3.0.0
+- **Database**: SQLite (cms.db)
+- **Frontend Framework**: Bootstrap 5
+- **Rich Text Editor**: Quill.js
+- **Icons**: Font Awesome 6.4.0
+- **Image Processing**: Pillow 10.0.0
+- **Internationalization**: Flask-Babel
+
+## 📦 Installation
+
+### Prerequisites
 - Python 3.7+
 - pip
 
-### 安装步骤
+### Quick Start
 
-1. **克隆项目**
+1. **Clone the repository**
 ```bash
-cd /Users/taataa/Documents/taa/private/python/cms
+git clone <repository-url>
+cd cms
 ```
 
-2. **安装依赖**
+2. **Install dependencies**
 ```bash
-pip install flask flask-sqlalchemy werkzeug
+pip install -r requirements.txt
 ```
 
-3. **运行应用**
+3. **Run the application**
 ```bash
 python app.py
 ```
 
-4. **访问系统**
-- 前台首页：http://localhost:5000
-- 后台管理：http://localhost:5000/admin/login
-- 默认管理员账号：admin / admin
+4. **Access the system**
+- Frontend: http://localhost:8080/
+- Admin: http://localhost:8080/admin/login
+- Default credentials: `admin` / `admin`
 
-## 项目结构
+## 📁 Project Structure
 
 ```
 cms/
-├── app.py                 # Flask主应用
-├── models.py              # 数据库模型
-├── README.md              # 说明文档
-├── static/                # 静态文件
-│   ├── css/               # 样式文件
-│   ├── js/                # JavaScript文件
-│   └── uploads/           # 上传文件
-│       ├── images/        # 图片文件
-│       ├── videos/        # 视频文件
-│       └── thumbnails/    # 缩略图
-└── templates/             # 模板文件
-    ├── admin/             # 后台模板
+├── app.py                      # Main Flask application
+├── models.py                   # Database models
+├── babel.cfg                   # Translation configuration
+├── requirements.txt            # Python dependencies
+├── README.md                   # English documentation
+├── README_zh.md               # Chinese documentation
+├── MULTILANG_README.md        # Multilingual feature guide
+├── translations/              # Translation files
+│   ├── zh_CN/LC_MESSAGES/     # Chinese translations
+│   │   ├── messages.po
+│   │   └── messages.mo
+│   └── en_US/LC_MESSAGES/     # English translations
+│       ├── messages.po
+│       └── messages.mo
+├── static/                    # Static files
+│   └── uploads/              # Uploaded files
+│       ├── images/           # Image files
+│       ├── videos/           # Video files
+│       └── thumbnails/       # Thumbnails
+└── templates/                 # Jinja2 templates
+    ├── base.html             # Base template
+    ├── index.html            # Homepage
+    ├── admin/                # Admin templates
     │   ├── base.html
     │   ├── login.html
     │   ├── dashboard.html
@@ -107,9 +139,8 @@ cms/
     │   ├── videos.html
     │   ├── video_edit.html
     │   ├── images.html
-    │   └── image_upload.html
-    ├── base.html          # 基础模板
-    ├── index.html         # 首页
+    │   ├── image_upload.html
+    │   └── menu_management.html
     ├── article_detail.html
     ├── video_detail.html
     ├── image_detail.html
@@ -118,99 +149,161 @@ cms/
     └── images_list.html
 ```
 
-## 使用指南
+## 📖 Usage Guide
 
-### 管理员登录
-1. 访问 `/admin/login`
-2. 输入用户名：`admin`，密码：`admin`
-3. 点击登录进入管理后台
+### Admin Login
+1. Visit `/admin/login`
+2. Enter username: `admin`, password: `admin`
+3. Click login to access admin panel
 
-### 创建文章
-1. 登录后台后，点击「文章管理」
-2. 点击「新建文章」
-3. 填写标题、内容、分类、标签等信息
-4. 选择发布状态（立即发布/保存为草稿）
-5. 点击「保存文章」
+### Create an Article
+1. After logging in, click "Articles" in the sidebar
+2. Click "New Article"
+3. Fill in title, content, category, tags, etc.
+4. Choose publication status (publish immediately or save as draft)
+5. Click "Save Article"
 
-### 添加视频
-1. 在后台点击「视频管理」
-2. 点击「添加视频」
-3. 填写视频信息
-4. 输入视频URL（支持本地路径或外部链接）
-5. 保存视频
+### Add a Video
+1. In admin panel, click "Videos"
+2. Click "Add Video"
+3. Fill in video information
+4. Enter video URL (local path or external link)
+5. Save video
 
-### 上传图片
-1. 在后台点击「图片管理」
-2. 点击「上传图片」
-3. 选择图片文件
-4. 填写图片信息
-5. 上传并保存
+### Upload Images
+1. In admin panel, click "Images"
+2. Click "Upload Image"
+3. Select image file
+4. Fill in image information
+5. Upload and save
 
-## API使用示例
+### Language Switching
+- **Frontend**: Click the globe icon in the navigation bar
+- **URL Switch**: Visit `/set_language/en` or `/set_language/zh_CN`
+- **Auto-detection**: System automatically detects browser language preference
 
-### 获取所有文章
+## 🔌 API Examples
+
+### Get All Articles
 ```bash
-curl http://localhost:5000/api/articles
+curl http://localhost:8080/api/articles
 ```
 
-### 获取特定文章
+### Get Specific Article
 ```bash
-curl http://localhost:5000/api/articles/my-first-article
+curl http://localhost:8080/api/articles/my-first-article
 ```
 
-### 获取所有图片
+### Get All Images
 ```bash
-curl http://localhost:5000/api/images
+curl http://localhost:8080/api/images
 ```
 
-## 自定义配置
+### Switch to English (via URL)
+```bash
+curl http://localhost:8080/set_language/en
+```
 
-### 修改管理员密码
-编辑 `app.py` 文件中的登录验证逻辑：
+## ⚙️ Configuration
+
+### Change Admin Password
+Edit the login validation logic in `app.py`:
 ```python
-if username == 'admin' and password == 'admin':  # 修改这里的密码
+if username == 'admin' and password == 'admin':  # Change password here
     session['admin_logged_in'] = True
 ```
 
-### 修改数据库
-编辑 `models.py` 文件，然后删除 `cms.db` 文件重新运行应用。
+### Modify Database
+Edit `models.py`, then delete `cms.db` and restart the application.
 
-### 修改上传文件大小限制
-编辑 `app.py` 文件：
+### Change Upload File Size Limit
+Edit `app.py`:
 ```python
-app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 修改为你需要的大小
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Change to desired size
 ```
 
-## 注意事项
+### Add New Translations
+1. Mark text for translation:
+   - In templates: `{% trans %}Text to translate{% endtrans %}`
+   - In Python: `gettext("Text to translate")`
+2. Extract translations:
+   ```bash
+   pybabel extract -F babel.cfg -o messages.pot .
+   ```
+3. Update translation files:
+   ```bash
+   pybabel update -i messages.pot -d translations
+   ```
+4. Edit `.po` files to add translations
+5. Compile translations:
+   ```bash
+   pybabel compile -d translations
+   ```
 
-1. **生产环境部署**：
-   - 修改 `SECRET_KEY`
-   - 使用更强的密码
-   - 使用更安全的数据库（如PostgreSQL）
-   - 配置HTTPS
+## 📝 Development Notes
 
-2. **文件上传**：
-   - 确保 `static/uploads` 目录有写权限
-   - 定期清理未使用的文件
+### Recent Updates
+- **Multilingual Support**: Added Chinese and English switching
+- **Enhanced Image Management**: Article cover image picker
+- **Menu Management**: Hierarchical menu system with drag-and-drop ordering
+- **Dynamic Language Switching**: Session-based language persistence
 
-3. **性能优化**：
-   - 图片可以使用CDN加速
-   - 添加缓存机制
-   - 使用反向代理（如Nginx）
+### Browser Cache Notes
+- Frontend changes may require hard refresh (Ctrl+Shift+R)
+- Use incognito mode during development to avoid cached content
 
-## 开发计划
+## ⚠️ Important Notes
 
-- [ ] 用户认证系统
-- [ ] 多用户支持
-- [ ] 评论系统
-- [ ] SEO优化
-- [ ] 搜索功能
-- [ ] 主题系统
-- [ ] 插件系统
+### Production Deployment
+1. Change `SECRET_KEY` in `app.py`
+2. Replace SQLite with PostgreSQL/MySQL
+3. Implement proper user authentication
+4. Add CSRF protection
+5. Configure HTTPS
+6. Set up cloud storage (AWS S3, etc.)
+7. Add caching layer (Redis/Memcached)
+8. Implement rate limiting
+9. Add logging and monitoring
 
-## 许可证
+### File Uploads
+- Ensure `static/uploads/` directory has write permissions
+- Regularly clean up unused files
 
-MIT License
+### Performance Optimization
+- Use CDN for images
+- Add caching mechanisms
+- Use reverse proxy (Nginx)
+- Enable gzip compression
 
-## 联系作者
-taa
+## 🛣️ Development Roadmap
+
+- [ ] User authentication system
+- [ ] Multi-user support
+- [ ] Comment system
+- [ ] SEO optimization
+- [ ] Search functionality
+- [ ] Theme system
+- [ ] Plugin system
+- [ ] Additional languages (Japanese, Korean, etc.)
+- [ ] RSS feed support
+- [ ] Sitemap generation
+
+## 🤝 Contributing
+
+Issues and Pull Requests are welcome!
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👨‍💻 Author
+
+Built by taa with Flask and modern web technologies.
+
+---
+
+**Enjoy using AI-CMS!** 🚀
+
+For more details, see:
+- [`MULTILANG_README.md`](MULTILANG_README.md) - Multilingual feature guide
+- [`README_zh.md`](README_zh.md) - 中文文档
