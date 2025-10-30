@@ -329,3 +329,63 @@ class MenuItem(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+class Link(db.Model):
+    """链接模型 - 用于首页链接展示"""
+    __tablename__ = 'links'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # 链接标题
+    title = db.Column(db.String(100), nullable=False)
+
+    # 链接地址
+    url = db.Column(db.String(500), nullable=False)
+
+    # 链接描述
+    description = db.Column(db.Text)
+
+    # 链接图标
+    icon = db.Column(db.String(50))  # Font Awesome图标类名
+
+    # 链接图片
+    image = db.Column(db.String(200))  # 链接图片路径
+
+    # 排序顺序
+    sort_order = db.Column(db.Integer, default=0)
+
+    # 是否可见
+    visible = db.Column(db.Boolean, default=True)
+
+    # 链接分类
+    category = db.Column(db.String(50))
+
+    # 作者
+    author = db.Column(db.String(100), default='Admin')
+
+    # 状态
+    status = db.Column(db.String(20), default='published')  # published, draft
+
+    # 创建和更新时间
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Link {self.title}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'url': self.url,
+            'description': self.description,
+            'icon': self.icon,
+            'image': self.image,
+            'sort_order': self.sort_order,
+            'visible': self.visible,
+            'category': self.category,
+            'author': self.author,
+            'status': self.status,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }

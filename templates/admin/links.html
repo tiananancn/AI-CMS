@@ -1,0 +1,455 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% trans %}链接管理{% endtrans %} - AI-CMS{% endblock %}
+
+{% block head %}
+<style>
+    .link-card {
+        transition: all 0.3s ease;
+        cursor: move;
+        border-left: 4px solid #28a745;
+    }
+    .link-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+    .link-card.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    .sortable-ghost {
+        opacity: 0.4;
+    }
+    .drag-handle {
+        cursor: move;
+        color: #adb5bd;
+        font-size: 1.2rem;
+    }
+    .drag-handle:hover {
+        color: #495057;
+    }
+    .link-icon {
+        width: 30px;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+    .link-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    .form-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-link me-2"></i>{% trans %}链接管理{% endtrans %}</h1>
+        <a href="{{ url_for('index') }}" target="_blank" class="btn btn-outline-primary">
+            <i class="fas fa-external-link-alt me-2"></i>{% trans %}预览首页{% endtrans %}
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>{% trans %}链接列表{% endtrans %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">{% trans %}拖拽链接调整顺序，勾选控制是否显示{% endtrans %}</p>
+
+                    <div id="links-list">
+                        <!-- Links will be loaded here -->
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-success w-100" onclick="saveLinks()">
+                            <i class="fas fa-save me-2"></i>{% trans %}保存所有更改{% endtrans %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>{% trans %}添加/编辑链接{% endtrans %}</h5>
+                </div>
+                <div class="card-body">
+                    <form id="link-form">
+                        <input type="hidden" id="link-id" value="">
+
+                        <div class="mb-3">
+                            <label for="link-title" class="form-label">{% trans %}标题{% endtrans %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="link-title" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="link-url" class="form-label">{% trans %}链接地址{% endtrans %} <span class="text-danger">*</span></label>
+                            <input type="url" class="form-control" id="link-url" required>
+                            <small class="form-text text-muted">{% trans %}例如: https://example.com{% endtrans %}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="link-description" class="form-label">{% trans %}描述{% endtrans %}</label>
+                            <textarea class="form-control" id="link-description" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="link-icon" class="form-label">{% trans %}图标类名{% endtrans %}</label>
+                            <input type="text" class="form-control" id="link-icon" placeholder="fas fa-home">
+                            <small class="form-text text-muted">{% trans %}Font Awesome图标类名，例如: fas fa-home{% endtrans %}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="link-category" class="form-label">{% trans %}分类{% endtrans %}</label>
+                            <input type="text" class="form-control" id="link-category" placeholder="{% trans %}例如: 常用链接{% endtrans %}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="link-status" class="form-label">{% trans %}状态{% endtrans %}</label>
+                            <select class="form-select" id="link-status">
+                                <option value="published">{% trans %}已发布{% endtrans %}</option>
+                                <option value="draft">{% trans %}草稿{% endtrans %}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="link-visible" checked>
+                            <label class="form-check-label" for="link-visible">
+                                {% trans %}在前台显示{% endtrans %}
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{% trans %}保存链接{% endtrans %}
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                <i class="fas fa-undo me-2"></i>{% trans %}重置{% endtrans %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>{% trans %}帮助{% endtrans %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <small>{% trans %}拖拽左侧手柄调整链接顺序{% endtrans %}</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <small>{% trans %}勾选"在前台显示"控制链接可见性{% endtrans %}</small>
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <small>{% trans %}链接会在首页的链接区域显示{% endtrans %}</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    let linksData = [];
+    let sortables = [];
+
+    // 页面加载时获取链接数据
+    document.addEventListener('DOMContentLoaded', function() {
+        loadLinks();
+        document.getElementById('link-form').addEventListener('submit', saveLink);
+    });
+
+    // 加载链接列表
+    async function loadLinks() {
+        try {
+            const response = await fetch('/api/admin/links');
+            const result = await response.json();
+
+            if (result.success) {
+                linksData = result.data;
+                renderLinks();
+                initializeSortable();
+            }
+        } catch (error) {
+            console.error('Error loading links:', error);
+            alert('加载链接失败');
+        }
+    }
+
+    // 渲染链接列表
+    function renderLinks() {
+        const container = document.getElementById('links-list');
+        container.innerHTML = '';
+
+        linksData.forEach(link => {
+            const linkElement = document.createElement('div');
+            linkElement.className = 'card mb-2 link-card';
+            linkElement.dataset.id = link.id;
+
+            linkElement.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="drag-handle me-3">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="checkbox" ${link.visible ? 'checked' : ''}
+                                onchange="toggleLinkVisibility(${link.id}, this.checked)">
+                        </div>
+
+                        <div class="link-icon me-3">
+                            ${link.icon ? `<i class="${link.icon}"></i>` : '<i class="fas fa-link text-muted"></i>'}
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">${link.title}</h6>
+                                    <small class="text-muted d-block">${link.url}</small>
+                                    ${link.description ? `<small class="text-muted">${link.description}</small>` : ''}
+                                    ${link.category ? `<span class="badge bg-secondary mt-1">${link.category}</span>` : ''}
+                                    ${link.status === 'draft' ? `<span class="badge bg-warning mt-1">草稿</span>` : ''}
+                                </div>
+
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="editLink(${link.id})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteLink(${link.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(linkElement);
+        });
+    }
+
+    // 初始化拖拽排序
+    function initializeSortable() {
+        // 销毁旧的排序实例
+        sortables.forEach(sortable => sortable.destroy());
+        sortables = [];
+
+        const container = document.getElementById('links-list');
+        const sortable = new Sortable(container, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'dragging',
+            handle: '.drag-handle',
+            onEnd: function(evt) {
+                // 重新排序数组
+                const items = Array.from(container.children);
+                const newOrder = [];
+
+                items.forEach(item => {
+                    const id = parseInt(item.dataset.id);
+                    newOrder.push(id);
+
+                    // 更新数组中的顺序
+                    const linkIndex = linksData.findIndex(l => l.id === id);
+                    if (linkIndex !== -1) {
+                        const link = linksData.splice(linkIndex, 1)[0];
+                        linksData.splice(newOrder.indexOf(id), 0, link);
+                    }
+                });
+            }
+        });
+
+        sortables.push(sortable);
+    }
+
+    // 保存链接（新增或更新）
+    async function saveLink(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('link-id').value;
+        const title = document.getElementById('link-title').value.trim();
+        const url = document.getElementById('link-url').value.trim();
+        const description = document.getElementById('link-description').value.trim();
+        const icon = document.getElementById('link-icon').value.trim();
+        const category = document.getElementById('link-category').value.trim();
+        const status = document.getElementById('link-status').value;
+        const visible = document.getElementById('link-visible').checked;
+
+        if (!title || !url) {
+            alert('请填写标题和链接地址');
+            return;
+        }
+
+        const data = {
+            title,
+            url,
+            description,
+            icon,
+            category,
+            status,
+            visible
+        };
+
+        try {
+            const endpoint = id ? `/api/admin/links/${id}` : '/api/admin/links';
+            const method = id ? 'PUT' : 'POST';
+
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(id ? '链接更新成功' : '链接创建成功');
+                resetForm();
+                loadLinks();
+            } else {
+                alert(result.error || '操作失败');
+            }
+        } catch (error) {
+            console.error('Error saving link:', error);
+            alert('操作失败');
+        }
+    }
+
+    // 编辑链接
+    function editLink(id) {
+        const link = linksData.find(l => l.id === id);
+        if (!link) return;
+
+        document.getElementById('link-id').value = link.id;
+        document.getElementById('link-title').value = link.title;
+        document.getElementById('link-url').value = link.url;
+        document.getElementById('link-description').value = link.description || '';
+        document.getElementById('link-icon').value = link.icon || '';
+        document.getElementById('link-category').value = link.category || '';
+        document.getElementById('link-status').value = link.status;
+        document.getElementById('link-visible').checked = link.visible;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 删除链接
+    async function deleteLink(id) {
+        if (!confirm('确定要删除这个链接吗？')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/links/${id}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('链接删除成功');
+                loadLinks();
+            } else {
+                alert(result.error || '删除失败');
+            }
+        } catch (error) {
+            console.error('Error deleting link:', error);
+            alert('删除失败');
+        }
+    }
+
+    // 切换链接可见性
+    async function toggleLinkVisibility(id, visible) {
+        try {
+            const response = await fetch(`/api/admin/links/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ visible })
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                alert('更新失败');
+                // 恢复原状态
+                loadLinks();
+            }
+        } catch (error) {
+            console.error('Error updating link visibility:', error);
+            alert('更新失败');
+            loadLinks();
+        }
+    }
+
+    // 保存所有更改（拖拽排序）
+    async function saveLinks() {
+        try {
+            const container = document.getElementById('links-list');
+            const items = Array.from(container.children);
+            const linkOrders = items.map(item => parseInt(item.dataset.id));
+
+            const response = await fetch('/api/admin/links/reorder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ link_orders: linkOrders })
+            });
+
+            const result = await response.json();
+
+            if (result.message) {
+                alert('保存成功');
+                loadLinks();
+            }
+        } catch (error) {
+            console.error('Error saving links:', error);
+            alert('保存失败');
+        }
+    }
+
+    // 重置表单
+    function resetForm() {
+        document.getElementById('link-form').reset();
+        document.getElementById('link-id').value = '';
+        document.getElementById('link-status').value = 'published';
+        document.getElementById('link-visible').checked = true;
+    }
+</script>
+{% endblock %}

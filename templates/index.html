@@ -171,6 +171,48 @@
                 </div>
             </section>
             {% endif %}
+
+            {% if section.visible and section.type == 'links' %}
+            <!-- 链接区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-link me-2"></i>{% if section.title %}{{ section.title }}{% else %}常用链接{% endif %}</h2>
+                </div>
+
+                <div class="row">
+                    {% for link in links %}
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <a href="{{ link.url }}" target="_blank" class="text-decoration-none">
+                            <div class="card link-card h-100 text-center">
+                                {% if link.image %}
+                                <div class="link-image-wrapper p-4">
+                                    <img src="{{ link.image }}" alt="{{ link.title }}" class="link-image">
+                                </div>
+                                {% else %}
+                                <div class="link-icon-wrapper p-4">
+                                    <i class="{{ link.icon or 'fas fa-link' }} fa-3x text-primary"></i>
+                                </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <h6 class="card-title text-dark">{{ link.title }}</h6>
+                                    {% if link.description %}
+                                    <p class="card-text text-muted small">{{ link.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-link fa-3x mb-3 d-block"></i>
+                            <p>{% trans %}暂无链接{% endtrans %}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
         {% endfor %}
     {% else %}
     <!-- 如果没有配置，使用默认布局 -->
@@ -257,6 +299,46 @@
                             <a href="{{ url_for('image_detail', slug=image.slug) }}" class="btn btn-sm btn-success">查看大图</a>
                         </div>
                     </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if links %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-link me-2"></i>{% trans %}常用链接{% endtrans %}</h2>
+        </div>
+        <div class="row">
+            {% for link in links %}
+            <div class="col-md-3 col-sm-6 mb-4">
+                <a href="{{ link.url }}" target="_blank" class="text-decoration-none">
+                    <div class="card link-card h-100 text-center">
+                        {% if link.image %}
+                        <div class="link-image-wrapper p-4">
+                            <img src="{{ link.image }}" alt="{{ link.title }}" class="link-image">
+                        </div>
+                        {% else %}
+                        <div class="link-icon-wrapper p-4">
+                            <i class="{{ link.icon or 'fas fa-link' }} fa-3x text-primary"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title text-dark">{{ link.title }}</h6>
+                            {% if link.description %}
+                            <p class="card-text text-muted small">{{ link.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-link fa-3x mb-3 d-block"></i>
+                    <p>{% trans %}暂无链接{% endtrans %}</p>
                 </div>
             </div>
             {% endfor %}

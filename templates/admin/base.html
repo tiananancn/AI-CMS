@@ -262,6 +262,11 @@
                             <i class="fas fa-bars"></i>{% trans %}菜单管理{% endtrans %}
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ url_for('admin_links') }}" {% if 'admin_links' in request.endpoint %}class="active"{% endif %}>
+                            <i class="fas fa-link"></i>{% trans %}链接管理{% endtrans %}
+                        </a>
+                    </li>
                 </ul>
             </li>
             <li>

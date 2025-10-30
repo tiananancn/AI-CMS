@@ -11,7 +11,7 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
 ## ✨ Features
 
 ### 🎨 Frontend
-- **Homepage Display**: Show latest articles, videos, and images
+- **Homepage Display**: Show latest articles, videos, images, and links
 - **Article System**:
   - Article listing (pagination and category filtering)
   - Article detail pages with rich text content
@@ -26,6 +26,7 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
   - Image detail pages
   - Image download functionality
   - Modal preview
+- **Links Section**: Beautiful link cards display with icons or custom images
 
 ### 🛠️ Admin Panel
 - **Dashboard**: System statistics display
@@ -45,7 +46,15 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
   - Image preview
   - Image information display
   - Category and tag management
+- **Link Management**:
+  - Add, edit, delete links
+  - Support Font Awesome icons or custom images
+  - Link categories and descriptions
+  - Drag-and-drop sorting
+  - Show/hide control
 - **Menu Management**: Dynamic navigation menu with drag-and-drop ordering
+- **Homepage Configuration**: Customizable homepage layout
+- **Dynamic Pages**: Drag-and-drop page editor
 - **Multilingual Support**: Built-in language switching between Chinese and English
 
 ### 🌍 Multilingual Support
@@ -62,6 +71,12 @@ Complete RESTful API endpoints:
 - `GET /api/videos/<slug>` - Get specific video
 - `GET /api/images` - Get all images
 - `GET /api/images/<slug>` - Get specific image
+- `GET /api/links` - Get visible links (frontend)
+- `GET /api/admin/links` - Get all links (admin)
+- `POST /api/admin/links` - Create new link
+- `PUT /api/admin/links/<id>` - Update link
+- `DELETE /api/admin/links/<id>` - Delete link
+- `POST /api/admin/links/reorder` - Reorder links
 - `GET /api/menu-items` - Get menu items
 - `GET /api/admin/menu-items` - Get all menu items (admin)
 
@@ -140,7 +155,8 @@ cms/
     │   ├── video_edit.html
     │   ├── images.html
     │   ├── image_upload.html
-    │   └── menu_management.html
+    │   ├── menu_management.html
+    │   ├── links.html
     ├── article_detail.html
     ├── video_detail.html
     ├── image_detail.html
@@ -177,6 +193,15 @@ cms/
 4. Fill in image information
 5. Upload and save
 
+### Manage Links
+1. In admin panel, go to "Layout Management" > "Link Management"
+2. Click "Add/Edit Link"
+3. Fill in title and URL
+4. Optionally add description, icon (Font Awesome class), or category
+5. Set visibility and status
+6. Drag and drop links to reorder
+7. Click "Save Link"
+
 ### Language Switching
 - **Frontend**: Click the globe icon in the navigation bar
 - **URL Switch**: Visit `/set_language/en` or `/set_language/zh_CN`
@@ -197,6 +222,11 @@ curl http://localhost:8080/api/articles/my-first-article
 ### Get All Images
 ```bash
 curl http://localhost:8080/api/images
+```
+
+### Get All Links
+```bash
+curl http://localhost:8080/api/links
 ```
 
 ### Switch to English (via URL)
@@ -243,9 +273,13 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Change to desired size
 ## 📝 Development Notes
 
 ### Recent Updates
+- **Link Management System**: Add, edit, and manage links with icons or images
+- **Homepage Link Section**: Display links in a beautiful card layout
 - **Multilingual Support**: Added Chinese and English switching
 - **Enhanced Image Management**: Article cover image picker
 - **Menu Management**: Hierarchical menu system with drag-and-drop ordering
+- **Dynamic Pages**: Drag-and-drop page editor
+- **Homepage Configuration**: Customizable homepage layout
 - **Dynamic Language Switching**: Session-based language persistence
 
 ### Browser Cache Notes

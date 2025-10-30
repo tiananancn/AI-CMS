@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel, gettext, ngettext
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Article, Video, Image, DynamicPage, ContentBlock, HomepageConfig, MenuItem
+from models import db, Article, Video, Image, DynamicPage, ContentBlock, HomepageConfig, MenuItem, Link
 from datetime import datetime
 import os
 import uuid
@@ -131,13 +131,14 @@ def init_homepage_config():
             name='default',
             enabled=True
         )
-        # 设置默认布局：hero -> articles -> videos -> images
+        # 设置默认布局：hero -> articles -> videos -> images -> links
         default_config = {
             'sections': [
                 {'type': 'hero', 'visible': True, 'order': 0},
                 {'type': 'articles', 'visible': True, 'order': 1, 'title': '最新文章', 'limit': 6},
                 {'type': 'videos', 'visible': True, 'order': 2, 'title': '最新视频', 'limit': 6},
-                {'type': 'images', 'visible': True, 'order': 3, 'title': '最新图片', 'limit': 8}
+                {'type': 'images', 'visible': True, 'order': 3, 'title': '最新图片', 'limit': 8},
+                {'type': 'links', 'visible': True, 'order': 4, 'title': '常用链接', 'limit': 8}
             ],
             'hero': {
                 'title': '欢迎来到AI-CMS',
@@ -152,6 +153,31 @@ def init_homepage_config():
         config.set_config(default_config)
         db.session.add(config)
         db.session.commit()
+    else:
+        # 检查现有配置是否包含 links section，如果没有则添加
+        config_data = config.get_config()
+        sections = config_data.get('sections', [])
+
+        # 检查是否已存在 links section
+        has_links_section = any(section.get('type') == 'links' for section in sections)
+
+        if not has_links_section:
+            # 获取当前最大 order
+            max_order = max([s.get('order', 0) for s in sections], default=0)
+
+            # 添加 links section
+            sections.append({
+                'type': 'links',
+                'visible': True,
+                'order': max_order + 1,
+                'title': '常用链接',
+                'limit': 8
+            })
+
+            config_data['sections'] = sections
+            config.set_config(config_data)
+            db.session.commit()
+            print("Updated homepage config to include links section")
 
 # 初始化菜单项（如果不存在）
 def init_menu_items():
@@ -331,10 +357,12 @@ def index():
         latest_articles = Article.query.filter_by(status='published').order_by(Article.created_at.desc()).limit(6).all()
         latest_videos = Video.query.filter_by(status='published').order_by(Video.created_at.desc()).limit(6).all()
         latest_images = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(6).all()
+        latest_links = Link.query.filter_by(status='published', visible=True).order_by(Link.sort_order).limit(8).all()
         return render_template('index.html',
                              articles=latest_articles,
                              videos=latest_videos,
                              images=latest_images,
+                             links=latest_links,
                              hero_config=None,
                              sections=None)
 
@@ -375,6 +403,8 @@ def index():
             data['videos'] = Video.query.filter_by(status='published').order_by(Video.created_at.desc()).limit(limit).all()
         elif section_type == 'images':
             data['images'] = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(limit).all()
+        elif section_type == 'links':
+            data['links'] = Link.query.filter_by(status='published').order_by(Link.sort_order).limit(limit).all()
 
     # 按order排序sections
     sorted_sections = sorted(sections, key=lambda x: x.get('order', 0))
@@ -1182,6 +1212,131 @@ def api_reorder_blocks(page_id):
 
     db.session.commit()
     return jsonify({'message': 'Blocks reordered successfully'})
+
+# ==================== 链接管理 ====================
+
+@app.route('/admin/links')
+@login_required
+def admin_links():
+    """链接管理页面"""
+    return render_template('admin/links.html')
+
+# ==================== 链接管理API ====================
+
+@app.route('/api/admin/links', methods=['GET'])
+@login_required
+def api_get_links():
+    """获取所有链接（管理后台）"""
+    links = Link.query.order_by(Link.sort_order).all()
+    return jsonify({
+        'success': True,
+        'data': [link.to_dict() for link in links]
+    })
+
+@app.route('/api/admin/links', methods=['POST'])
+@login_required
+def api_create_link():
+    """创建新链接"""
+    data = request.get_json()
+
+    # 验证必填字段
+    if not data.get('title') or not data.get('url'):
+        return jsonify({'error': 'Title and URL are required'}), 400
+
+    # 获取当前最大排序号
+    max_order = db.session.query(db.func.max(Link.sort_order)).scalar() or 0
+
+    link = Link(
+        title=data['title'],
+        url=data['url'],
+        description=data.get('description'),
+        icon=data.get('icon'),
+        image=data.get('image'),
+        sort_order=max_order + 1,
+        visible=data.get('visible', True),
+        category=data.get('category'),
+        status=data.get('status', 'published')
+    )
+
+    db.session.add(link)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': link.to_dict()
+    }), 201
+
+@app.route('/api/admin/links/<int:link_id>', methods=['PUT'])
+@login_required
+def api_update_link(link_id):
+    """更新链接"""
+    data = request.get_json()
+    link = Link.query.get_or_404(link_id)
+
+    # 更新字段
+    if 'title' in data:
+        link.title = data['title']
+    if 'url' in data:
+        link.url = data['url']
+    if 'description' in data:
+        link.description = data['description']
+    if 'icon' in data:
+        link.icon = data['icon']
+    if 'image' in data:
+        link.image = data['image']
+    if 'visible' in data:
+        link.visible = data['visible']
+    if 'category' in data:
+        link.category = data['category']
+    if 'status' in data:
+        link.status = data['status']
+    if 'sort_order' in data:
+        link.sort_order = data['sort_order']
+
+    link.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': link.to_dict()
+    })
+
+@app.route('/api/admin/links/<int:link_id>', methods=['DELETE'])
+@login_required
+def api_delete_link(link_id):
+    """删除链接"""
+    link = Link.query.get_or_404(link_id)
+    db.session.delete(link)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Link deleted successfully'
+    })
+
+@app.route('/api/admin/links/reorder', methods=['POST'])
+@login_required
+def api_reorder_links():
+    """重新排序链接"""
+    data = request.get_json()
+    link_orders = data.get('link_orders', [])
+
+    for i, link_id in enumerate(link_orders):
+        link = Link.query.filter_by(id=link_id).first()
+        if link:
+            link.sort_order = i
+
+    db.session.commit()
+    return jsonify({'message': 'Links reordered successfully'})
+
+@app.route('/api/links', methods=['GET'])
+def api_get_visible_links():
+    """获取可见链接（前台）"""
+    links = Link.query.filter_by(visible=True, status='published').order_by(Link.sort_order).all()
+    return jsonify({
+        'success': True,
+        'data': [link.to_dict() for link in links]
+    })
 
 # ==================== 前台页面路由 ====================
 

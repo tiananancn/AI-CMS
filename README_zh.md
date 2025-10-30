@@ -11,7 +11,7 @@
 ## ✨ 功能特性
 
 ### 🎨 前台功能
-- **首页展示**：展示最新的文章、视频和图片
+- **首页展示**：展示最新的文章、视频、图片和链接
 - **文章系统**：
   - 文章列表页（支持分页和分类筛选）
   - 文章详情页（支持富文本内容）
@@ -26,6 +26,7 @@
   - 图片详情页
   - 图片下载功能
   - 图片模态框预览
+- **链接展示**：精美的链接卡片，支持图标或自定义图片
 
 ### 🛠️ 后台管理
 - **仪表盘**：显示系统统计数据
@@ -45,6 +46,12 @@
   - 图片预览
   - 图片信息展示
   - 分类和标签管理
+- **链接管理**：
+  - 添加、编辑、删除链接
+  - 支持Font Awesome图标或自定义图片
+  - 链接分类和描述
+  - 拖拽排序功能
+  - 显示/隐藏控制
 - **菜单管理**：支持拖拽排序的动态导航菜单
 - **首页配置**：可定制的首页布局
 - **动态页面**：拖拽式页面编辑器
@@ -63,6 +70,12 @@
 - `GET /api/videos/<slug>` - 获取特定视频
 - `GET /api/images` - 获取所有图片
 - `GET /api/images/<slug>` - 获取特定图片
+- `GET /api/links` - 获取可见链接（前台）
+- `GET /api/admin/links` - 获取所有链接（管理后台）
+- `POST /api/admin/links` - 创建新链接
+- `PUT /api/admin/links/<id>` - 更新链接
+- `DELETE /api/admin/links/<id>` - 删除链接
+- `POST /api/admin/links/reorder` - 重新排序链接
 - `GET /api/menu-items` - 获取菜单项
 - `GET /api/admin/menu-items` - 获取所有菜单项（管理后台）
 
@@ -144,7 +157,8 @@ cms/
     │   ├── menu_management.html
     │   ├── homepage_config.html
     │   ├── dynamic_pages.html
-    │   └── dynamic_page_edit.html
+    │   ├── dynamic_page_edit.html
+    │   └── links.html
     ├── article_detail.html
     ├── video_detail.html
     ├── image_detail.html
@@ -183,6 +197,15 @@ cms/
 4. 填写图片信息
 5. 上传并保存
 
+### 管理链接
+1. 进入后台，点击「版面管理」>「链接管理」
+2. 点击「添加/编辑链接」
+3. 填写标题和链接地址
+4. 可选填写描述、图标（Font Awesome类名）或分类
+5. 设置可见性和状态
+6. 拖拽链接可调整顺序
+7. 点击「保存链接」
+
 ### 语言切换
 - **前端切换**：点击导航栏的地球图标
 - **URL切换**：访问 `/set_language/en` 或 `/set_language/zh_CN`
@@ -203,6 +226,11 @@ curl http://localhost:8080/api/articles/my-first-article
 ### 获取所有图片
 ```bash
 curl http://localhost:8080/api/images
+```
+
+### 获取所有链接
+```bash
+curl http://localhost:8080/api/links
 ```
 
 ### 切换到英文（通过URL）
@@ -249,6 +277,8 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 修改为你需要的大
 ## 📝 开发说明
 
 ### 最近更新
+- **链接管理系统**：添加、编辑和管理链接，支持图标或图片
+- **首页链接区域**：以精美卡片布局展示链接
 - **多语言支持**：添加中英文切换功能
 - **增强图片管理**：文章封面图片选择器
 - **动态页面编辑器**：拖拽式页面构建器
