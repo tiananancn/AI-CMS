@@ -12,12 +12,13 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
 
 ### 🎨 Frontend
 - **Homepage Display**: Show latest articles, videos, images, and links
-- **Configurable Content**: Select specific content to display on homepage
+- **Configurable Content**: Select specific content to display on homepage with flexible homepage content management
+- **Carousel Banner**: Dynamic homepage carousel with sortable banner images
 - **Article System**:
   - Article listing (pagination and category filtering)
   - Article detail pages with rich text content
   - Category and tag system
-  - Cover image support
+  - Cover image support with picker
 - **Video System**:
   - Video listing (pagination and category filtering)
   - Video detail pages (local files and external links)
@@ -28,6 +29,7 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
   - Image download functionality
   - Modal preview
 - **Links Section**: Beautiful link cards display with icons or custom images
+- **Dynamic Pages**: Visually stunning pages built with grid editor
 
 ### 🛠️ Admin Panel
 - **Dashboard**: System statistics display
@@ -36,7 +38,7 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
   - Rich text editor (Quill.js)
   - Article status management (published/draft)
   - Category and tag management
-  - Cover image picker
+  - Cover image picker with library integration
 - **Video Management**:
   - Add, edit, delete videos
   - Support local video files and external links (YouTube, Bilibili, etc.)
@@ -44,7 +46,7 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
   - Category and tag management
 - **Image Management**:
   - Image upload functionality
-  - Image preview
+  - Image preview and library
   - Image information display
   - Category and tag management
 - **Link Management**:
@@ -53,30 +55,51 @@ A lightweight yet powerful Content Management System (CMS) built with Flask, fea
   - Link categories and descriptions
   - Drag-and-drop sorting
   - Show/hide control
-- **Menu Management**: Dynamic navigation menu with drag-and-drop ordering
-- **Homepage Configuration**: Customizable homepage layout
+- **Menu Management**: Dynamic navigation menu with hierarchical support (2 levels) and drag-and-drop ordering
+- **Homepage Configuration**: Fully customizable homepage layout with hero section
 - **Homepage Content Management**: Select and arrange specific content to display on homepage
-- **Carousel Management**: Manage homepage banner images with drag-and-drop sorting
+  - Choose which articles, videos, images, and links appear on homepage
+  - Drag-and-drop reordering for custom display order
+  - Search and filter content when selecting
+- **Carousel Management**:
+  - Manage homepage banner images with drag-and-drop sorting
+  - Support up to 5 carousel images
+  - Select from image library or upload new images
 - **Dynamic Pages**: Advanced drag-and-drop page editor with:
-  - **Grid Layout Editor**: Visual grid-based page builder
+  - **Grid Layout Editor**: Visual grid-based page builder (5x5 or 6x6 grid)
   - **9 Element Types**: Text, Image, Video, Quote, Button, Divider, Gallery, Icon, Card
   - **Library Integration**: Select content directly from existing libraries
-    - Select images from image library
-    - Select videos from video library
-    - Select multiple images for galleries
-    - Reference articles in text elements
+    - Select images from image library for Image elements
+    - Select videos from video library for Video elements
+    - Select multiple images from library for Gallery elements
+    - Reference articles in Text elements with one click
   - **Cell Merging**: Merge and unmerge grid cells for flexible layouts
     - Select multiple cells (Ctrl/Cmd + click)
-    - Merge cells into larger regions
-    - Visual feedback with size indicators
-    - Automatic data persistence
-- **Multilingual Support**: Built-in language switching between Chinese and English
+    - Merge rectangular selections into larger regions
+    - Visual feedback with selection indicators
+    - Size indicators on merged cells (e.g., 2x2)
+    - Automatic data persistence across saves
+- **Multilingual Support**: Complete bilingual support (Chinese/English)
+  - **Frontend Language Switching**: Toggle between Chinese and English via globe icon
+  - **Backend Language Switching**: Full admin interface in both languages
+  - **Dynamic Content Translation**: Menu items and homepage content translate automatically
+  - **Session Persistence**: Language preference saved across sessions
+  - **Auto-detection**: Automatic browser language detection
 
 ### 🌍 Multilingual Support
-- **Built-in Language Switching**: Switch freely between Chinese and English
-- **Auto-detection**: Automatic detection of browser language preferences
-- **Session Persistence**: Save user language preferences
-- **Translation Management**: Flask-Babel based translation system
+- **Complete Bilingual System**: Switch freely between Chinese and English
+- **Frontend Language Toggle**: Globe icon in navigation bar for instant switching
+- **Backend Full Translation**: All admin interface elements in both languages
+- **Dynamic Content Translation**:
+  - Menu items (首页/Articles, 文章/Videos, etc.)
+  - Homepage content (最新文章/Latest Articles, 欢迎来到/Welcome to)
+  - Admin sections (仪表盘/Dashboard, 布局管理/Layout Management)
+- **Multiple Switching Methods**:
+  - Click globe icon in navigation
+  - URL switching: `/set_language/en` or `/set_language/zh_CN`
+  - Automatic browser language detection (priority: user choice > session > browser > default)
+- **Session Persistence**: Language preference saved across page visits
+- **Flask-Babel System**: Professional translation management with .po/.mo files
 
 ### 📊 RESTful API
 Complete RESTful API endpoints:
@@ -366,28 +389,76 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Change to desired size
 
 ## 📝 Development Notes
 
-### Recent Updates
-- **Grid Editor Library Integration**: Select content directly from existing libraries when creating pages
-  - Select images from image library for Image elements
-  - Select videos from video library for Video elements
-  - Select multiple images from library for Gallery elements
-  - Reference articles in Text elements
-- **Cell Merging Feature**: Merge and unmerge grid cells for flexible layouts
+### Latest Updates (October 2025)
+
+#### 🔧 Core Feature Enhancements
+- **Grid Editor Library Integration** ✅ Complete
+  - Select content directly from existing libraries when building pages
+  - Image elements: Choose from image library with automatic URL/Alt text filling
+  - Video elements: Select from video library with one-click URL insertion
+  - Gallery elements: Multi-select images from library for batch application
+  - Text elements: Reference existing articles with formatted insertion
+
+- **Cell Merging Feature** ✅ Complete
   - Multi-select cells with Ctrl/Cmd + click
-  - Merge rectangular selections into larger cells
-  - Visual feedback with selection indicators
-  - Size indicators on merged cells (e.g., 2x2)
-  - Persistent merge state across saves
-- **Homepage Content Management**: Select and arrange specific content to display on homepage with drag-and-drop ordering
-- **Carousel Management**: Manage homepage banner images with sortable interface
-- **Link Management System**: Add, edit, and manage links with icons or images
-- **Homepage Link Section**: Display links in a beautiful card layout
-- **Multilingual Support**: Added Chinese and English switching
-- **Enhanced Image Management**: Article cover image picker
-- **Menu Management**: Hierarchical menu system with drag-and-drop ordering
-- **Dynamic Pages**: Drag-and-drop page editor
-- **Homepage Configuration**: Customizable homepage layout
-- **Dynamic Language Switching**: Session-based language persistence
+  - Merge rectangular selections into larger regions (e.g., 2x2, 3x1)
+  - Visual feedback with blue selection indicators
+  - Size indicators on merged cells (e.g., "2x2 merged")
+  - Persistent merge state across page saves and loads
+  - Unmerge cells to split back into individual cells
+
+- **Homepage Content Management** ✅ Complete
+  - Select specific articles, videos, images, and links to display on homepage
+  - Search and filter content when selecting
+  - Drag-and-drop reordering for custom display sequence
+  - Add/remove content with + and × buttons
+  - Support for all content types (articles, videos, images, links)
+  - Configuration saved to database with backward compatibility
+
+- **Carousel Management** ✅ Complete
+  - Manage up to 5 homepage banner images
+  - Drag-and-drop sorting for custom display order
+  - Select from existing image library or upload new images
+  - Recommended size: 1920×800 pixels
+  - Support formats: JPG, PNG, GIF, WebP
+
+#### 🌍 Internationalization Improvements
+- **Complete Multilingual Support** ✅ Fully Implemented
+  - Frontend: All static text translated (navigation, buttons, messages)
+  - Backend: Complete admin interface in both languages
+  - Dynamic Content: Menu items and homepage content translate automatically
+  - Translation mapping system for database-driven content
+  - All new features include multilingual support from day one
+
+#### 🐛 Bug Fixes & Improvements
+- **Menu Management** ✅ Fixed
+  - Resolved "Failed to load menus" error
+  - Fixed SortableJS initialization issue (was passing array instead of HTMLElement)
+  - Menu drag-and-drop now works correctly
+  - All 5 default menus display properly (首页, 文章, 视频, 图片, 其它)
+
+#### 🎨 UI/UX Enhancements
+- **Enhanced Image Picker**: Article cover image selection with library integration
+- **Hierarchical Menu Support**: 2-level menu system with parent-child relationships
+- **Drag-and-Drop Everywhere**: Consistent sorting experience across all management pages
+- **Visual Feedback**: Selection indicators, size markers, and hover states
+- **Modal Integration**: Library selection through intuitive modal dialogs
+
+#### 📚 Documentation & Testing
+- **Comprehensive Documentation**: Detailed guides for each new feature
+  - `GRID_EDITOR_LIBRARY_INTEGRATION.md` - Library integration guide
+  - `CELL_MERGE_FEATURE.md` - Cell merging documentation
+  - `CELL_MERGE_QUICK_GUIDE.md` - Quick reference guide
+  - `HOMEPAGE_CONTENT_MANAGEMENT.md` - Homepage content guide
+  - `MULTILANG_README.md` - Multilingual feature documentation
+- **Automated Testing**: Playwright browser automation for validation
+- **API Testing**: All endpoints tested and documented
+
+#### 🔄 Version Highlights
+- **v3.0** (Oct 2025): Grid editor with library integration & cell merging
+- **v2.5** (Oct 2025): Homepage content management & carousel system
+- **v2.0** (Oct 2025): Complete multilingual support
+- **v1.5** (Oct 2025): Menu management & link system
 
 ### Browser Cache Notes
 - Frontend changes may require hard refresh (Ctrl+Shift+R)

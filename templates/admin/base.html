@@ -239,6 +239,13 @@
                     <i class="fas fa-images"></i>{% trans %}图片管理{% endtrans %}
                 </a>
             </li>
+            {% if session.get('admin_is_admin', False) %}
+            <li>
+                <a href="{{ url_for('admin_users') }}" {% if 'admin_user' in request.endpoint %}class="active"{% endif %}>
+                    <i class="fas fa-users"></i>{% trans %}用户管理{% endtrans %}
+                </a>
+            </li>
+            {% endif %}
             <li class="has-submenu {% if 'admin_homepage_config' in request.endpoint or 'admin_homepage_content' in request.endpoint or 'admin_carousel_management' in request.endpoint or 'admin_dynamic_pages' in request.endpoint or 'admin_menu_management' in request.endpoint %}expanded{% endif %}">
                 <a class="submenu-toggle" href="#" onclick="toggleSubmenu(this); return false;">
                     <span>
@@ -298,6 +305,47 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">{% block page_title %}{% trans %}管理后台{% endtrans %}{% endblock %}</h4>
                 <div class="d-flex align-items-center">
+                    <!-- 用户信息 -->
+                    <div class="dropdown me-3">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            {{ session.get('admin_display_name', 'User') }}
+                            {% if session.get('admin_is_admin', False) %}
+                                <span class="badge bg-danger ms-1">Admin</span>
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <span class="dropdown-item-text">
+                                    <small class="text-muted">用户名: {{ session.get('admin_username') }}</small>
+                                </span>
+                            </li>
+                            <li>
+                                <span class="dropdown-item-text">
+                                    <small class="text-muted">
+                                        角色:
+                                        {% if session.get('admin_is_admin', False) %}
+                                            管理员
+                                        {% else %}
+                                            用户
+                                        {% endif %}
+                                    </small>
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('admin_user_change_password', user_id=session.get('admin_user_id')) }}">
+                                    <i class="fas fa-key me-2"></i>修改密码
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('admin_logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>退出登录
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
                     <!-- 语言切换器 -->
                     <div class="dropdown me-3">
                         <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">

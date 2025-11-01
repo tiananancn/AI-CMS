@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel, gettext, ngettext
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Article, Video, Image, DynamicPage, ContentBlock, HomepageConfig, MenuItem, Link
+from models import db, Article, Video, Image, DynamicPage, ContentBlock, HomepageConfig, MenuItem, Link, User
 from datetime import datetime
 import os
 import uuid
@@ -65,6 +65,38 @@ app.config['ALLOWED_EXTENSIONS'] = {
 
 # 初始化数据库
 db.init_app(app)
+
+# ==================== 缓存机制 ====================
+from datetime import datetime, timedelta
+
+# 简单内存缓存
+_cache = {}
+_cache_timeout = {}
+
+def get_cache(key, timeout=300):
+    """获取缓存（默认5分钟过期）"""
+    if key in _cache and key in _cache_timeout:
+        if datetime.now() < _cache_timeout[key]:
+            return _cache[key]
+        else:
+            # 缓存过期，删除
+            del _cache[key]
+            del _cache_timeout[key]
+    return None
+
+def set_cache(key, value, timeout=300):
+    """设置缓存"""
+    _cache[key] = value
+    _cache_timeout[key] = datetime.now() + timedelta(seconds=timeout)
+
+def clear_cache(key=None):
+    """清除缓存"""
+    if key:
+        _cache.pop(key, None)
+        _cache_timeout.pop(key, None)
+    else:
+        _cache.clear()
+        _cache_timeout.clear()
 
 # ==================== 多语言支持配置 ====================
 
@@ -224,11 +256,12 @@ with app.app_context():
     init_homepage_config()
     init_menu_items()
 
-# 预处理请求
+# 预处理请求 - 优化版本
 @app.before_request
 def before_request():
-    """在请求前检查大小"""
-    if request.method == 'POST':
+    """在请求前检查大小 - 只对需要的后台管理路由执行"""
+    # 只对后台管理页面的POST请求执行检查，提升性能
+    if request.method == 'POST' and request.endpoint and 'admin' in request.endpoint:
         # 检查Content-Length
         content_length = request.headers.get('Content-Length')
         if content_length:
@@ -293,12 +326,25 @@ def set_language(lang):
         flash('不支持的语言', 'error')
         return redirect(url_for('index'))
 
-# 全局模板上下文 - 添加菜单数据和语言选项
+# 全局模板上下文 - 添加菜单数据和语言选项（优化版）
 @app.context_processor
 def inject_menu_items():
-    """为所有模板注入菜单数据和语言选项"""
+    """为所有模板注入菜单数据和语言选项（使用缓存优化性能）"""
     try:
         current_language = get_locale()
+
+        # 使用缓存键包含语言，避免重复查询
+        cache_key = f'menu_items_{current_language}'
+        cached_menu = get_cache(cache_key, timeout=600)  # 缓存10分钟
+
+        if cached_menu is not None:
+            return {
+                'menu_items': cached_menu,
+                'LANGUAGES': LANGUAGES,
+                'current_lang': current_language
+            }
+
+        # 如果没有缓存，进行数据库查询
         menu_items = MenuItem.query.filter_by(parent_id=None, visible=True).order_by(MenuItem.order).all()
 
         # 翻译菜单项
@@ -335,6 +381,9 @@ def inject_menu_items():
             item_dict['label'] = translated_label
             item_dict['children'] = translated_children
             translated_menu.append(item_dict)
+
+        # 缓存结果
+        set_cache(cache_key, translated_menu, timeout=600)
 
         return {
             'menu_items': translated_menu,
@@ -553,18 +602,37 @@ def admin_login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        # 简单的管理员验证（生产环境中应使用更安全的方式）
-        if username == 'admin' and password == 'admin':
+
+        # 查找用户
+        user = User.query.filter_by(username=username).first()
+
+        # 验证用户
+        if user and user.active and user.check_password(password):
+            # 登录成功，设置会话
             session['admin_logged_in'] = True
+            session['admin_user_id'] = user.id
+            session['admin_username'] = user.username
+            session['admin_display_name'] = user.display_name
+            session['admin_is_admin'] = user.role == 'admin'
+
+            # 更新最后登录时间
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+
+            flash(f'欢迎回来，{user.display_name}!', 'success')
             return redirect(url_for('admin_dashboard'))
         else:
-            flash('用户名或密码错误', 'error')
+            flash('用户名或密码错误，或账户已被禁用', 'error')
     return render_template('admin/login.html')
 
 # 管理员退出
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_logged_in', None)
+    session.pop('admin_user_id', None)
+    session.pop('admin_username', None)
+    session.pop('admin_display_name', None)
+    session.pop('admin_is_admin', None)
     return redirect(url_for('admin_login'))
 
 # 管理员首页
@@ -1622,6 +1690,212 @@ def api_get_visible_links():
         'data': [link.to_dict() for link in links]
     })
 
+# ==================== 用户管理 ====================
+
+@app.route('/admin/users')
+@login_required
+def admin_users():
+    """用户管理页面"""
+    # 检查权限 - 只有管理员可以访问用户管理
+    if not session.get('admin_is_admin', False):
+        flash('您没有权限访问此页面', 'error')
+        return redirect(url_for('admin_dashboard'))
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('admin/users.html', users=users)
+
+@app.route('/admin/users/new', methods=['GET', 'POST'])
+@login_required
+def admin_user_new():
+    """创建新用户"""
+    # 检查权限
+    if not session.get('admin_is_admin', False):
+        flash('您没有权限执行此操作', 'error')
+        return redirect(url_for('admin_users'))
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        email = request.form.get('email')
+        display_name = request.form.get('display_name')
+        role = request.form.get('role', 'viewer')
+
+        # 验证必填字段
+        if not username or not password or not display_name:
+            flash('用户名、密码和显示名称为必填项', 'error')
+            return render_template('admin/user_edit.html', user=None)
+
+        # 检查用户名是否已存在
+        if User.query.filter_by(username=username).first():
+            flash('用户名已存在', 'error')
+            return render_template('admin/user_edit.html', user=None)
+
+        # 检查邮箱是否已存在
+        if email and User.query.filter_by(email=email).first():
+            flash('邮箱已被使用', 'error')
+            return render_template('admin/user_edit.html', user=None)
+
+        # 创建新用户
+        user = User(
+            username=username,
+            display_name=display_name,
+            email=email,
+            role=role,
+            active=True
+        )
+        user.set_password(password)
+
+        db.session.add(user)
+        db.session.commit()
+
+        # 清除菜单缓存（刷新用户列表）
+        clear_cache('menu_items_zh_CN')
+        clear_cache('menu_items_en')
+
+        flash('用户创建成功', 'success')
+        return redirect(url_for('admin_users'))
+
+    return render_template('admin/user_edit.html', user=None)
+
+@app.route('/admin/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+def admin_user_edit(user_id):
+    """编辑用户"""
+    # 检查权限
+    if not session.get('admin_is_admin', False):
+        flash('您没有权限执行此操作', 'error')
+        return redirect(url_for('admin_users'))
+
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        display_name = request.form.get('display_name')
+        role = request.form.get('role', 'viewer')
+        password = request.form.get('password')
+
+        # 检查邮箱是否已被其他用户使用
+        if email:
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user and existing_user.id != user.id:
+                flash('邮箱已被其他用户使用', 'error')
+                return render_template('admin/user_edit.html', user=user)
+
+        # 更新字段
+        if display_name:
+            user.display_name = display_name
+        if email is not None:
+            user.email = email
+        if role:
+            user.role = role
+
+        # 如果提供了新密码，则更新密码
+        if password:
+            user.set_password(password)
+
+        user.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        flash('用户信息更新成功', 'success')
+        return redirect(url_for('admin_users'))
+
+    return render_template('admin/user_edit.html', user=user)
+
+@app.route('/admin/users/<int:user_id>/toggle-status', methods=['POST'])
+@login_required
+def admin_user_toggle_status(user_id):
+    """切换用户激活状态"""
+    # 检查权限
+    if not session.get('admin_is_admin', False):
+        return jsonify({'error': '您没有权限执行此操作'}), 403
+
+    user = User.query.get_or_404(user_id)
+
+    # 禁止禁用自己
+    if user.id == session.get('admin_user_id'):
+        return jsonify({'error': '不能禁用自己的账户'}), 400
+
+    user.active = not user.active
+    user.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    # 清除菜单缓存（刷新显示状态）
+    clear_cache('menu_items_zh_CN')
+    clear_cache('menu_items_en')
+
+    status = '已激活' if user.active else '已禁用'
+    return jsonify({
+        'success': True,
+        'message': f'用户状态已更新为: {status}',
+        'active': user.active
+    })
+
+@app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+def admin_user_delete(user_id):
+    """删除用户"""
+    # 检查权限
+    if not session.get('admin_is_admin', False):
+        flash('您没有权限执行此操作', 'error')
+        return redirect(url_for('admin_users'))
+
+    user = User.query.get_or_404(user_id)
+
+    # 禁止删除自己
+    if user.id == session.get('admin_user_id'):
+        flash('不能删除自己的账户', 'error')
+        return redirect(url_for('admin_users'))
+
+    # 清除菜单缓存（因为可能影响了用户角色相关显示）
+    clear_cache('menu_items_zh_CN')
+    clear_cache('menu_items_en')
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f'用户 "{user.username}" 删除成功', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/users/<int:user_id>/change-password', methods=['GET', 'POST'])
+@login_required
+def admin_user_change_password(user_id):
+    """修改用户密码"""
+    user = User.query.get_or_404(user_id)
+
+    # 只有管理员可以修改其他用户密码，用户只能修改自己的密码
+    if not session.get('admin_is_admin', False) and user.id != session.get('admin_user_id'):
+        flash('您没有权限执行此操作', 'error')
+        return redirect(url_for('admin_users'))
+
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        # 如果是修改自己的密码，需要验证当前密码
+        if user.id == session.get('admin_user_id') and not session.get('admin_is_admin', False):
+            if not current_password or not user.check_password(current_password):
+                flash('当前密码错误', 'error')
+                return render_template('admin/change_password.html', user=user)
+
+        # 验证新密码
+        if not new_password:
+            flash('新密码不能为空', 'error')
+            return render_template('admin/change_password.html', user=user)
+
+        if new_password != confirm_password:
+            flash('两次输入的密码不一致', 'error')
+            return render_template('admin/change_password.html', user=user)
+
+        # 更新密码
+        user.set_password(new_password)
+        user.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        flash('密码修改成功', 'success')
+        return redirect(url_for('admin_users'))
+
+    return render_template('admin/change_password.html', user=user)
+
 # ==================== 前台页面路由 ====================
 
 @app.route('/page/<slug>')
@@ -1732,9 +2006,29 @@ def test_js():
 </html>
 '''
 
+# 初始化默认管理员用户
+def init_default_admin():
+    """初始化默认管理员用户"""
+    admin_user = User.query.filter_by(username='admin').first()
+    if not admin_user:
+        admin_user = User(
+            username='admin',
+            display_name='Administrator',
+            email='admin@example.com',
+            role='admin',
+            active=True
+        )
+        admin_user.set_password('admin')
+        db.session.add(admin_user)
+        db.session.commit()
+        print('✅ 默认管理员账户已创建: username=admin, password=admin')
+
 # 创建数据库表
 with app.app_context():
     db.create_all()
+    init_default_admin()
+    init_homepage_config()
+    init_menu_items()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=False, host='0.0.0.0', port=8080)

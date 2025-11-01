@@ -1,0 +1,141 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}用户管理{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('admin_user_new') }}" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i>新建用户
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>显示名称</th>
+                        <th>邮箱</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>最后登录</th>
+                        <th width="200">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if session.get('admin_user_id') == user.id %}
+                                <span class="badge bg-primary ms-2">当前用户</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.display_name }}</td>
+                        <td>
+                            {% if user.email %}
+                                <a href="mailto:{{ user.email }}">{{ user.email }}</a>
+                            {% else %}
+                                <span class="text-muted">未设置</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.role == 'admin' %}
+                                <span class="badge bg-danger">管理员</span>
+                            {% elif user.role == 'editor' %}
+                                <span class="badge bg-warning">编辑</span>
+                            {% else %}
+                                <span class="badge bg-secondary">查看者</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.active %}
+                                <span class="badge bg-success">已激活</span>
+                            {% else %}
+                                <span class="badge bg-danger">已禁用</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.last_login %}
+                                {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                                <span class="text-muted">从未登录</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin_user_edit', user_id=user.id) }}" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('admin_user_change_password', user_id=user.id) }}" class="btn btn-outline-secondary" title="修改密码">
+                                    <i class="fas fa-key"></i>
+                                </a>
+                                {% if session.get('admin_user_id') != user.id %}
+                                    <button type="button" class="btn btn-outline-{{ 'success' if user.active else 'warning' }}"
+                                            title="{{ '禁用' if user.active else '激活' }}"
+                                            onclick="toggleUserStatus({{ user.id }}, {{ 'true' if user.active else 'false' }})">
+                                        <i class="fas fa-{{ 'user-slash' if user.active else 'user-check' }}"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" title="删除"
+                                            onclick="confirmDelete({{ user.id }}, '{{ user.username }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-3 d-block"></i>
+                            暂无用户
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(id, username) {
+    if (confirm('确定要删除用户 "' + username + '" 吗？此操作不可撤销。')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/users/${id}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function toggleUserStatus(id, isActive) {
+    const action = isActive === 'true' ? '禁用' : '激活';
+    if (confirm(`确定要${action}此用户吗？`)) {
+        fetch(`/admin/users/${id}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('操作失败: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('操作失败: ' + error);
+        });
+    }
+}
+</script>
+{% endblock %}

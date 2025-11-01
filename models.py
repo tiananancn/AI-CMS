@@ -389,3 +389,108 @@ class Link(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+class User(db.Model):
+    """用户模型 - 支持多用户管理和权限控制"""
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # 用户名（唯一）
+    username = db.Column(db.String(50), nullable=False, unique=True)
+
+    # 密码哈希
+    password_hash = db.Column(db.String(255), nullable=False)
+
+    # 电子邮件（可选）
+    email = db.Column(db.String(100), unique=True)
+
+    # 显示名称
+    display_name = db.Column(db.String(50), nullable=False)
+
+    # 角色：admin（管理员）、editor（编辑）、viewer（查看者）
+    role = db.Column(db.String(20), default='viewer', nullable=False)
+
+    # 权限：JSON格式存储详细权限
+    # 例如：{"articles": {"read": true, "write": true, "delete": false}}
+    permissions = db.Column(db.Text)
+
+    # 是否激活
+    active = db.Column(db.Boolean, default=True)
+
+    # 最后登录时间
+    last_login = db.Column(db.DateTime)
+
+    # 创建和更新时间
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+    def set_password(self, password):
+        """设置密码（自动生成哈希）"""
+        from werkzeug.security import generate_password_hash
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """验证密码"""
+        from werkzeug.security import check_password_hash
+        return check_password_hash(self.password_hash, password)
+
+    def get_permissions(self):
+        """获取解析后的权限数据"""
+        if self.permissions:
+            try:
+                return json.loads(self.permissions)
+            except json.JSONDecodeError:
+                return {}
+        return {}
+
+    def set_permissions(self, data):
+        """设置权限数据"""
+        self.permissions = json.dumps(data, ensure_ascii=False)
+
+    def is_admin(self):
+        """是否为管理员"""
+        return self.role == 'admin'
+
+    def is_editor(self):
+        """是否为编辑"""
+        return self.role == 'editor'
+
+    def has_permission(self, resource, action='read'):
+        """检查是否有指定资源的权限"""
+        # 管理员拥有所有权限
+        if self.role == 'admin':
+            return True
+
+        # 查看者无编辑权限
+        if self.role == 'viewer' and action != 'read':
+            return False
+
+        # 获取权限配置
+        permissions = self.get_permissions()
+
+        # 检查具体资源权限
+        if resource in permissions:
+            resource_perms = permissions[resource]
+            if action in resource_perms:
+                return resource_perms[action]
+
+        return False
+
+    def to_dict(self):
+        """转换为字典（不包含密码哈希）"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'display_name': self.display_name,
+            'role': self.role,
+            'permissions': self.get_permissions(),
+            'active': self.active,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
