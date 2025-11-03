@@ -60,7 +60,7 @@
                                         {{ article.title }}
                                     </a>
                                 </h3>
-                                <p class="card-text text-muted">{{ article.excerpt or article.content[:150] ~ '...' }}</p>
+                                <p class="card-text text-muted">{{ article.excerpt or (article.content|striptags)[:150] ~ '...' }}</p>
                                 <div class="mt-auto">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>

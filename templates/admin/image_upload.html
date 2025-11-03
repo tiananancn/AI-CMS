@@ -9,31 +9,31 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label class="form-label">图片标题 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control form-control-lg" name="title" required>
+                        <label class="form-label">图片标题/前缀 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg" name="title_prefix" id="titlePrefix" placeholder="用于多张图片的标题前缀，例如：风景摄影">
+                        <small class="form-text text-muted">对于多张图片，将自动添加序号 (1), (2), (3)...</small>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">图片描述</label>
                         <textarea class="form-control" name="description" rows="3"
-                                  placeholder="请输入图片描述"></textarea>
+                                  placeholder="请输入图片描述（可选）"></textarea>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">选择图片 <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" name="image" accept="image/*" required id="imageInput">
+                        <input type="file" class="form-control" name="images" accept="image/*" multiple required id="imageInput">
                         <small class="form-text text-muted">
                             支持格式: JPG, PNG, JPEG, GIF, BMP, WebP, SVG<br>
-                            文件大小限制: 最大 1GB
+                            支持多选，可一次选择多张图片上传<br>
+                            文件大小限制: 单个最大 1GB
                         </small>
-                        <div id="fileSizeInfo" class="mt-2"></div>
+                        <div id="fileCountInfo" class="mt-2"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">预览</label>
-                        <div id="imagePreview" class="mt-2">
-                            <img id="previewImg" style="max-width: 100%; display: none; border-radius: 8px;">
-                        </div>
+                        <label class="form-label">批量预览 <span id="previewCount" class="badge bg-secondary">0</span></label>
+                        <div id="imagePreview" class="mt-2 row"></div>
                     </div>
                 </div>
 
@@ -85,75 +85,124 @@
 {% block scripts %}
 <script>
 document.getElementById('imageInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    const fileSizeInfo = document.getElementById('fileSizeInfo');
-    const previewImg = document.getElementById('previewImg');
+    const files = e.target.files;
+    const fileCountInfo = document.getElementById('fileCountInfo');
+    const previewCount = document.getElementById('previewCount');
+    const previewContainer = document.getElementById('imagePreview');
 
-    if (file) {
-        // 显示文件大小
-        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        const fileSizeInfoText = `选中文件: ${file.name} (${fileSizeMB} MB)`;
+    if (files.length > 0) {
+        // 显示文件数量信息
+        const totalSizeMB = Array.from(files).reduce((sum, file) => sum + file.size, 0) / (1024 * 1024);
+        const fileCountInfoText = `已选择 ${files.length} 张图片，总大小: ${totalSizeMB.toFixed(2)} MB`;
 
-        // 检查文件大小
+        let hasError = false;
+        let errorMsg = '';
+
+        // 检查每个文件
         const maxSize = 1024 * 1024 * 1024; // 1GB
-        if (file.size > maxSize) {
-            fileSizeInfo.innerHTML = `<span class="text-danger">❌ 文件过大！最大允许 1024MB</span>`;
-            e.target.value = '';
-            return;
-        } else if (file.size > 100 * 1024 * 1024) { // 大于100MB显示警告
-            fileSizeInfo.innerHTML = `<span class="text-warning">⚠️ 注意：大文件上传可能需要较长时间</span>`;
-        } else {
-            fileSizeInfo.innerHTML = `<span class="text-success">✓ 文件大小: ${fileSizeMB} MB</span>`;
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.size > maxSize) {
+                hasError = true;
+                errorMsg = `❌ 文件 "${file.name}" 过大！最大允许 1024MB`;
+                break;
+            }
+            if (!allowedTypes.includes(file.type)) {
+                hasError = true;
+                errorMsg = `❌ 文件 "${file.name}" 格式不支持！`;
+                break;
+            }
         }
 
-        // 显示预览
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            previewImg.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
+        if (hasError) {
+            fileCountInfo.innerHTML = `<span class="text-danger">${errorMsg}</span>`;
+            e.target.value = '';
+            previewContainer.innerHTML = '';
+            previewCount.textContent = '0';
+            return;
+        } else {
+            fileCountInfo.innerHTML = `<span class="text-success">✓ ${fileCountInfoText}</span>`;
+        }
+
+        // 显示预览（最多显示9张）
+        previewContainer.innerHTML = '';
+        const previewCount = Math.min(files.length, 9);
+        previewCount.textContent = files.length;
+
+        for (let i = 0; i < previewCount; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = (function(fileIndex) {
+                return function(e) {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'col-md-4 mb-2';
+                    colDiv.innerHTML = `
+                        <div class="card">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                            <div class="card-body p-2">
+                                <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
+                                <small class="text-muted">${(file.size / (1024 * 1024)).toFixed(2)} MB</small>
+                            </div>
+                        </div>
+                    `;
+                    previewContainer.appendChild(colDiv);
+                };
+            })(i);
+            reader.readAsDataURL(file);
+        }
+
+        if (files.length > 9) {
+            const moreDiv = document.createElement('div');
+            moreDiv.className = 'col-12';
+            moreDiv.innerHTML = `<p class="text-muted text-center">还有 ${files.length - 9} 张图片未显示...</p>`;
+            previewContainer.appendChild(moreDiv);
+        }
     } else {
-        fileSizeInfo.innerHTML = '';
-        previewImg.style.display = 'none';
+        fileCountInfo.innerHTML = '';
+        previewContainer.innerHTML = '';
+        previewCount.textContent = '0';
     }
 });
 
 document.getElementById('imageForm').addEventListener('submit', function(e) {
-    const title = document.querySelector('input[name="title"]').value.trim();
-    const file = document.querySelector('input[name="image"]').files[0];
+    const titlePrefix = document.querySelector('input[name="title_prefix"]').value.trim();
+    const files = document.querySelector('input[name="images"]').files;
 
-    if (!title) {
+    if (!titlePrefix) {
         e.preventDefault();
-        alert('请输入图片标题');
+        alert('请输入图片标题/前缀');
         return false;
     }
 
-    if (!file) {
+    if (files.length === 0) {
         e.preventDefault();
         alert('请选择要上传的图片');
         return false;
     }
 
-    // 检查文件大小 (1GB)
+    // 检查文件大小和类型
     const maxSize = 1024 * 1024 * 1024;
-    if (file.size > maxSize) {
-        e.preventDefault();
-        alert('文件过大！最大允许 1024MB (1GB)');
-        return false;
-    }
-
-    // 检查文件类型
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
-        e.preventDefault();
-        alert('不支持的文件格式！请选择图片文件');
-        return false;
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.size > maxSize) {
+            e.preventDefault();
+            alert(`文件 "${file.name}" 过大！最大允许 1024MB (1GB)`);
+            return false;
+        }
+        if (!allowedTypes.includes(file.type)) {
+            e.preventDefault();
+            alert(`文件 "${file.name}" 格式不支持！请选择图片文件`);
+            return false;
+        }
     }
 
     // 显示上传进度
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>上传中...';
+    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>正在上传 ${files.length} 张图片...`;
     submitBtn.disabled = true;
 });
 </script>

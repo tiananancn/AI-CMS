@@ -10,6 +10,58 @@ import uuid
 import imghdr
 import re
 from functools import wraps
+from PIL import Image as PILImage
+
+# 图片压缩函数
+def compress_uploaded_image(file_path, max_width=1920, quality=75, max_size_kb=500):
+    """
+    压缩上传的图片文件
+    - 调整图片宽度到指定最大值
+    - 压缩到指定质量
+    - 如果压缩后仍大于最大大小，继续降低质量
+    """
+    try:
+        with PILImage.open(file_path) as img:
+            # 转换为RGB（去除透明度）
+            if img.mode in ('RGBA', 'LA', 'P'):
+                img = img.convert('RGB')
+
+            # 调整大小
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_height = int(img.height * ratio)
+                img = img.resize((max_width, new_height), PILImage.Resampling.LANCZOS)
+
+            # 压缩保存
+            max_size_bytes = max_size_kb * 1024
+            quality_temp = quality
+
+            # 尝试不同质量级别直到文件大小满足要求
+            while quality_temp > 30:
+                # 保存到临时缓冲区检查大小
+                import io
+                buffer = io.BytesIO()
+                img.save(buffer, format='JPEG', quality=quality_temp, optimize=True)
+
+                if buffer.tell() <= max_size_bytes:
+                    # 大小合适，保存文件
+                    with open(file_path, 'wb') as f:
+                        f.write(buffer.getvalue())
+                    return True, quality_temp
+
+                quality_temp -= 10
+
+            # 质量已降到最低，仍然太大，直接保存
+            import io
+            buffer = io.BytesIO()
+            img.save(buffer, format='JPEG', quality=30, optimize=True)
+            with open(file_path, 'wb') as f:
+                f.write(buffer.getvalue())
+            return True, 30
+
+    except Exception as e:
+        print(f"Error compressing image: {e}")
+        return False, 0
 
 # 检查Base64图片大小
 def check_base64_images(content):
@@ -52,6 +104,8 @@ app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cms.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# 浏览器缓存优化
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1年缓存
 # 增加上传文件大小限制到1GB
 app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024  # 1GB max file size
 # 添加请求大小限制配置
@@ -408,9 +462,26 @@ def generate_slug(title, model):
         counter += 1
     return slug
 
-# 首页 - 支持可定制布局
+# 首页 - 优化版本，添加缓存
+from functools import lru_cache
+from time import time
+
+# 首页缓存配置
+INDEX_CACHE_DURATION = 300  # 5分钟缓存
+_index_cache = {'timestamp': 0, 'data': None}
+
 @app.route('/')
 def index():
+    global _index_cache
+
+    # 检查缓存
+    current_time = time()
+    if _index_cache['data'] and (current_time - _index_cache['timestamp'] < INDEX_CACHE_DURATION):
+        # 获取可见的菜单项（用于顶部导航）
+        menu_items = MenuItem.query.filter_by(parent_id=None, visible=True).order_by(MenuItem.order).all()
+        cache_data_with_menu = {**_index_cache['data'], 'menu_items': menu_items}
+        return render_template('index.html', **cache_data_with_menu)
+
     # 获取首页配置
     config = HomepageConfig.query.filter_by(name='default', enabled=True).first()
     if not config:
@@ -420,6 +491,22 @@ def index():
         latest_images = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(6).all()
         latest_carousel_images = Image.query.filter_by(status='published').order_by(Image.created_at.desc()).limit(5).all()
         latest_links = Link.query.filter_by(status='published', visible=True).order_by(Link.sort_order).limit(8).all()
+        # 获取可见的菜单项（用于顶部导航）
+        menu_items = MenuItem.query.filter_by(parent_id=None, visible=True).order_by(MenuItem.order).all()
+        cache_data = {
+            'articles': latest_articles,
+            'videos': latest_videos,
+            'images': latest_images,
+            'carousel_images': latest_carousel_images,
+            'links': latest_links,
+            'hero_config': None,
+            'sections': None,
+            'menu_items': menu_items
+        }
+        _index_cache = {
+            'timestamp': time(),
+            'data': cache_data
+        }
         return render_template('index.html',
                              articles=latest_articles,
                              videos=latest_videos,
@@ -427,7 +514,8 @@ def index():
                              carousel_images=latest_carousel_images,
                              links=latest_links,
                              hero_config=None,
-                             sections=None)
+                             sections=None,
+                             menu_items=menu_items)
 
     config_data = config.get_config()
     sections = config_data.get('sections', [])
@@ -526,10 +614,25 @@ def index():
     # 按order排序sections
     sorted_sections = sorted(sections, key=lambda x: x.get('order', 0))
 
+    # 缓存结果
+    # 获取可见的菜单项（用于顶部导航）
+    menu_items = MenuItem.query.filter_by(parent_id=None, visible=True).order_by(MenuItem.order).all()
+    cache_data = {
+        'hero_config': hero_config,
+        'sections': sorted_sections,
+        **data,
+        'menu_items': menu_items
+    }
+    _index_cache = {
+        'timestamp': time(),
+        'data': cache_data
+    }
+
     return render_template('index.html',
                          hero_config=hero_config,
                          sections=sorted_sections,
-                         **data)
+                         **data,
+                         menu_items=menu_items)
 
 # 文章详情页
 @app.route('/article/<slug>')
@@ -796,27 +899,35 @@ def admin_images():
 @login_required
 def admin_image_upload():
     if request.method == 'POST':
-        title = request.form.get('title')
+        title_prefix = request.form.get('title_prefix')
         description = request.form.get('description')
         category = request.form.get('category')
         tags = request.form.get('tags')
         status = request.form.get('status', 'published')
 
         # 检查是否有文件
-        if 'image' not in request.files:
+        if 'images' not in request.files:
             flash('没有选择文件', 'error')
             return redirect(request.url)
 
-        file = request.files['image']
-        if file.filename == '':
+        files = request.files.getlist('images')
+        if not files or len(files) == 0 or (len(files) == 1 and files[0].filename == ''):
             flash('没有选择文件', 'error')
             return redirect(request.url)
 
-        if file:
+        success_count = 0
+        error_count = 0
+        error_messages = []
+
+        for index, file in enumerate(files):
+            if file.filename == '':
+                continue
+
             # 验证文件扩展名
             if not allowed_file(file.filename, 'images'):
-                flash('不支持的文件格式！仅支持: png, jpg, jpeg, gif, bmp, webp, svg', 'error')
-                return redirect(request.url)
+                error_count += 1
+                error_messages.append(f'文件 "{file.filename}" 格式不支持！')
+                continue
 
             # 检查文件大小
             file.seek(0, os.SEEK_END)
@@ -825,8 +936,9 @@ def admin_image_upload():
 
             if file_size > app.config['MAX_CONTENT_LENGTH']:
                 max_size_mb = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
-                flash(f'文件过大！最大允许 {max_size_mb}MB', 'error')
-                return redirect(request.url)
+                error_count += 1
+                error_messages.append(f'文件 "{file.filename}" 过大！最大允许 {max_size_mb}MB')
+                continue
 
             try:
                 filename = secure_filename(file.filename)
@@ -837,12 +949,15 @@ def admin_image_upload():
                 # 验证文件类型
                 if not validate_file_type(file_path, 'image'):
                     os.remove(file_path)  # 删除无效文件
-                    flash('无效的图片文件！', 'error')
-                    return redirect(request.url)
+                    error_count += 1
+                    error_messages.append(f'文件 "{file.filename}" 是无效的图片文件！')
+                    continue
+
+                # 压缩图片（减小文件大小）
+                compress_uploaded_image(file_path, max_width=1920, quality=75, max_size_kb=500)
 
                 # 获取图片尺寸
                 try:
-                    from PIL import Image as PILImage
                     with PILImage.open(file_path) as img:
                         width, height = img.size
                 except:
@@ -850,7 +965,17 @@ def admin_image_upload():
 
                 # 获取实际文件大小
                 actual_file_size = os.path.getsize(file_path)
-                slug = generate_slug(title, Image)
+
+                # 生成标题和Slug
+                title = f"{title_prefix} ({index + 1})" if len(files) > 1 else title_prefix
+                slug_base = generate_slug(title_prefix, Image)
+                slug = f"{slug_base}-{index + 1}" if len(files) > 1 else slug_base
+
+                # 确保slug唯一
+                counter = 1
+                while Image.query.filter_by(slug=slug).first():
+                    slug = f"{slug_base}-{index + 1}-{counter}"
+                    counter += 1
 
                 image = Image(
                     title=title,
@@ -868,13 +993,28 @@ def admin_image_upload():
                 )
 
                 db.session.add(image)
-                db.session.commit()
-                flash('图片上传成功', 'success')
-                return redirect(url_for('admin_images'))
+                success_count += 1
 
             except Exception as e:
-                flash(f'上传失败: {str(e)}', 'error')
-                return redirect(request.url)
+                error_count += 1
+                error_messages.append(f'文件 "{file.filename}" 上传失败：{str(e)}')
+
+        db.session.commit()
+
+        # 显示结果消息
+        if success_count > 0:
+            if error_count == 0:
+                flash(f'成功上传 {success_count} 张图片！', 'success')
+            else:
+                flash(f'成功上传 {success_count} 张图片，{error_count} 张失败', 'warning')
+
+        if error_count > 0:
+            for msg in error_messages[:5]:  # 只显示前5个错误
+                flash(msg, 'error')
+            if len(error_messages) > 5:
+                flash(f'还有 {len(error_messages) - 5} 个错误...', 'error')
+
+        return redirect(url_for('admin_images'))
 
     return render_template('admin/image_upload.html')
 
@@ -931,9 +1071,11 @@ def api_upload_image():
                     os.remove(file_path)  # 删除无效文件
                     return jsonify({'error': 'Invalid image file'}), 400
 
+                # 压缩图片（减小文件大小）
+                compress_uploaded_image(file_path, max_width=1920, quality=75, max_size_kb=500)
+
                 # 获取图片尺寸
                 try:
-                    from PIL import Image as PILImage
                     with PILImage.open(file_path) as img:
                         width, height = img.size
                 except:
@@ -1050,6 +1192,7 @@ def admin_dynamic_page_new():
         slug = request.form.get('slug', '').strip()
         description = request.form.get('description', '').strip()
         cover_image = request.form.get('cover_image', '').strip()
+        show_menu_navigation = request.form.get('show_menu_navigation') == '1'
 
         if not title or not slug:
             flash('标题和别名不能为空', 'error')
@@ -1064,7 +1207,8 @@ def admin_dynamic_page_new():
             title=title,
             slug=slug,
             description=description,
-            cover_image=cover_image
+            cover_image=cover_image,
+            show_menu_navigation=show_menu_navigation
         )
         db.session.add(page)
         db.session.commit()
@@ -1084,6 +1228,7 @@ def admin_dynamic_page_edit(id):
         slug = request.form.get('slug', '').strip()
         description = request.form.get('description', '').strip()
         cover_image = request.form.get('cover_image', '').strip()
+        show_menu_navigation = request.form.get('show_menu_navigation') == '1'
 
         if not title or not slug:
             flash('标题和别名不能为空', 'error')
@@ -1099,6 +1244,7 @@ def admin_dynamic_page_edit(id):
         page.slug = slug
         page.description = description
         page.cover_image = cover_image
+        page.show_menu_navigation = show_menu_navigation
 
         db.session.commit()
         flash('页面更新成功', 'success')
@@ -1905,13 +2051,16 @@ def dynamic_page_view(slug):
     page.views += 1
     db.session.commit()
 
+    # 获取菜单项（只获取可见的）
+    menu_items = MenuItem.query.filter_by(parent_id=None, visible=True).order_by(MenuItem.order).all()
+
     # 检查是否有网格布局
     has_grid_layout = ContentBlock.query.filter_by(page_id=page.id).count() > 0
 
     if has_grid_layout:
-        return render_template('grid_page_display.html', page=page)
+        return render_template('grid_page_display.html', page=page, menu_items=menu_items)
     else:
-        return render_template('dynamic_page.html', page=page)
+        return render_template('dynamic_page.html', page=page, menu_items=menu_items)
 
 # JavaScript功能测试路由
 @app.route('/test-js')
@@ -2031,4 +2180,8 @@ with app.app_context():
     init_menu_items()
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0', port=8080)
+    # 性能优化配置
+    # debug=True: 自动重载、详细错误信息、性能监控
+    # threaded=True: 多线程模式（提高并发性能）
+    # use_reloader=False: 避免双进程（仅用于生产）
+    app.run(debug=True, host='0.0.0.0', port=8080, threaded=True, use_reloader=False)

@@ -143,6 +143,7 @@ class DynamicPage(db.Model):
     author = db.Column(db.String(100), default='Admin')
     status = db.Column(db.String(20), default='published')  # published, draft
     views = db.Column(db.Integer, default=0)
+    show_menu_navigation = db.Column(db.Boolean, default=True)  # 是否显示顶部菜单导航
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -162,6 +163,7 @@ class DynamicPage(db.Model):
             'author': self.author,
             'status': self.status,
             'views': self.views,
+            'show_menu_navigation': self.show_menu_navigation,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
             'blocks': [block.to_dict() for block in self.blocks]

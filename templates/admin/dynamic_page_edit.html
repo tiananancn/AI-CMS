@@ -39,11 +39,22 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">封面图片URL</label>
-                        <input type="text" class="form-control" name="cover_image"
-                               value="{{ page.cover_image if page else '' }}"
-                               placeholder="/static/uploads/images/cover.jpg">
+                        <label class="form-label">封面图片</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="cover_image"
+                                   id="cover_image_url"
+                                   value="{{ page.cover_image if page else '' }}"
+                                   placeholder="/static/uploads/images/cover.jpg">
+                            <button type="button" class="btn btn-outline-secondary" onclick="showImageLibraryModal()">
+                                <i class="fas fa-images"></i> 从图库选择
+                            </button>
+                        </div>
                         <small class="form-text text-muted">可选，用于页面预览图</small>
+                        {% if page and page.cover_image %}
+                        <div class="mt-2">
+                            <img src="/static/{{ page.cover_image }}" alt="封面预览" style="max-width: 200px; max-height: 150px; border-radius: 4px;">
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -61,6 +72,23 @@
                                 </select>
                             </div>
                             {% endif %}
+
+                            <hr>
+
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="show_menu_navigation"
+                                           id="show_menu_navigation"
+                                           value="1"
+                                           {% if not page or page.show_menu_navigation %}checked{% endif %}>
+                                    <label class="form-check-label" for="show_menu_navigation">
+                                        <i class="fas fa-bars me-1"></i> 显示顶部菜单导航
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">
+                                    启用后，页面顶部将显示与首页一致的导航菜单栏
+                                </small>
+                            </div>
 
                             <hr>
 
@@ -98,4 +126,103 @@
     </div>
 </div>
 {% endif %}
+
+<!-- 图片库选择模态框 -->
+<div class="modal fade" id="imageLibraryModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择封面图片</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="imageLibraryList">
+                    <!-- 图片列表将动态加载 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="applySelectedImage()">应用选择</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedImage = null;
+
+async function showImageLibraryModal() {
+    try {
+        const response = await fetch('/api/images');
+        const images = await response.json();
+
+        const imageListDiv = document.getElementById('imageLibraryList');
+        imageListDiv.innerHTML = '';
+
+        if (images.length === 0) {
+            imageListDiv.innerHTML = '<div class="col-12 text-center text-muted">暂无图片</div>';
+        } else {
+            images.forEach(image => {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'col-md-3 mb-3';
+                colDiv.innerHTML = `
+                    <div class="card h-100 image-library-item" data-image-id="${image.id}"
+                         data-filepath="${image.filepath}" style="cursor: pointer; border: 2px solid transparent;"
+                         onclick="selectImage(this)">
+                        <img src="/static/${image.filepath}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                        <div class="card-body">
+                            <h6 class="card-title">${image.title}</h6>
+                            <p class="card-text text-muted small">${image.description || ''}</p>
+                        </div>
+                    </div>
+                `;
+                imageListDiv.appendChild(colDiv);
+            });
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('imageLibraryModal'));
+        modal.show();
+    } catch (error) {
+        console.error('加载图片库失败:', error);
+        alert('加载图片库失败');
+    }
+}
+
+function selectImage(element) {
+    // 移除其他选中状态
+    document.querySelectorAll('.image-library-item').forEach(item => {
+        item.style.border = '2px solid transparent';
+    });
+
+    // 添加选中状态
+    element.style.border = '2px solid #0d6efd';
+
+    // 保存选中的图片
+    selectedImage = {
+        filepath: element.dataset.filepath
+    };
+}
+
+function applySelectedImage() {
+    if (!selectedImage) {
+        alert('请先选择一张图片');
+        return;
+    }
+
+    // 设置封面图片URL
+    document.getElementById('cover_image_url').value = `/static/${selectedImage.filepath}`;
+
+    // 关闭模态框
+    const modal = bootstrap.Modal.getInstance(document.getElementById('imageLibraryModal'));
+    modal.hide();
+
+    // 显示预览（如果存在）
+    const previewContainer = document.querySelector('.mt-2');
+    if (previewContainer) {
+        previewContainer.innerHTML = `<img src="/static/${selectedImage.filepath}" alt="封面预览" style="max-width: 200px; max-height: 150px; border-radius: 4px;">`;
+    }
+}
+</script>
 {% endblock %}

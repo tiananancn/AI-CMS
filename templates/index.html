@@ -76,7 +76,8 @@
                         <div class="card content-card h-100">
                             <div class="position-relative">
                                 {% if article.cover_image %}
-                                <img src="/static/{{ article.cover_image }}" class="content-thumbnail" alt="{{ article.title }}">
+                                <img data-src="/static/{{ article.cover_image }}" class="content-thumbnail lazy-image" alt="{{ article.title }}"
+                                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
                                 {% else %}
                                 <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
                                     <i class="fas fa-newspaper fa-3x text-muted"></i>
@@ -92,7 +93,7 @@
                             </div>
                             <div class="card-body">
                                 <h5 class="card-title">{{ article.title }}</h5>
-                                <p class="card-text text-muted">{{ article.excerpt or article.content[:100] ~ '...' }}</p>
+                                <p class="card-text text-muted">{{ article.excerpt or (article.content|striptags)[:100] ~ '...' }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">{{ article.created_at.strftime('%Y-%m-%d') }}</small>
                                     <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">阅读更多</a>
@@ -125,7 +126,8 @@
                     <div class="col-md-4 mb-4">
                         <div class="card content-card h-100">
                             {% if video.thumbnail %}
-                            <img src="{{ video.thumbnail }}" class="content-thumbnail" alt="{{ video.title }}">
+                            <img data-src="{{ video.thumbnail }}" class="content-thumbnail lazy-image" alt="{{ video.title }}"
+                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
                             {% else %}
                             <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
                                 <i class="fas fa-play-circle fa-3x text-danger"></i>
@@ -165,8 +167,9 @@
                     {% for image in images %}
                     <div class="col-md-3 mb-4">
                         <div class="card content-card h-100">
-                            <img src="{{ url_for('static', filename=image.filepath) }}" class="content-thumbnail" alt="{{ image.title }}"
-                                 style="height: 200px; object-fit: cover;">
+                            <img data-src="{{ url_for('static', filename=image.filepath) }}" class="content-thumbnail lazy-image" alt="{{ image.title }}"
+                                 style="height: 200px; object-fit: cover;"
+                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
                             <div class="card-body">
                                 <h6 class="card-title">{{ image.title }}</h6>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -243,7 +246,8 @@
             <div class="col-md-4 mb-4">
                 <div class="card content-card h-100">
                     {% if article.cover_image %}
-                    <img src="/static/{{ article.cover_image }}" class="content-thumbnail" alt="{{ article.title }}">
+                    <img data-src="/static/{{ article.cover_image }}" class="content-thumbnail lazy-image" alt="{{ article.title }}"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
                     {% else %}
                     <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
                         <i class="fas fa-newspaper fa-3x text-muted"></i>
@@ -251,7 +255,7 @@
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ article.title }}</h5>
-                        <p class="card-text text-muted">{{ article.excerpt or article.content[:100] ~ '...' }}</p>
+                        <p class="card-text text-muted">{{ article.excerpt or (article.content|striptags)[:100] ~ '...' }}</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">{{ article.created_at.strftime('%Y-%m-%d') }}</small>
                             <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">阅读更多</a>
@@ -275,7 +279,8 @@
             <div class="col-md-4 mb-4">
                 <div class="card content-card h-100">
                     {% if video.thumbnail %}
-                    <img src="{{ video.thumbnail }}" class="content-thumbnail" alt="{{ video.title }}">
+                    <img data-src="{{ video.thumbnail }}" class="content-thumbnail lazy-image" alt="{{ video.title }}"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
                     {% else %}
                     <div class="content-thumbnail bg-light d-flex align-items-center justify-content-center">
                         <i class="fas fa-play-circle fa-3x text-danger"></i>
@@ -306,8 +311,9 @@
             {% for image in images %}
             <div class="col-md-3 mb-4">
                 <div class="card content-card h-100">
-                    <img src="{{ url_for('static', filename=image.filepath) }}" class="content-thumbnail" alt="{{ image.title }}"
-                         style="height: 200px; object-fit: cover;">
+                    <img data-src="{{ url_for('static', filename=image.filepath) }}" class="content-thumbnail lazy-image" alt="{{ image.title }}"
+                         style="height: 200px; object-fit: cover;"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
                     <div class="card-body">
                         <h6 class="card-title">{{ image.title }}</h6>
                         <div class="d-flex justify-content-between align-items-center">
