@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理员登录 - CMS后台</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>{% trans %}管理员登录{% endtrans %} - {% trans %}CMS后台{% endtrans %}</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/all.min.css') }}" rel="stylesheet">
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -49,7 +49,7 @@
 </head>
 <body>
     <div class="login-card">
-        <h2><i class="fas fa-lock me-2"></i>管理员登录</h2>
+        <h2><i class="fas fa-lock me-2"></i>{% trans %}管理员登录{% endtrans %}</h2>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -63,7 +63,7 @@
 
         <form method="post">
             <div class="mb-3">
-                <label class="form-label">用户名</label>
+                <label class="form-label">{% trans %}用户名{% endtrans %}</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                     <input type="text" class="form-control" name="username" required autofocus>
@@ -71,7 +71,7 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">密码</label>
+                <label class="form-label">{% trans %}密码{% endtrans %}</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-key"></i></span>
                     <input type="password" class="form-control" name="password" required>
@@ -79,11 +79,11 @@
             </div>
 
             <button type="submit" class="btn btn-primary btn-login">
-                <i class="fas fa-sign-in-alt me-2"></i>登录
+                <i class="fas fa-sign-in-alt me-2"></i>{% trans %}登录{% endtrans %}
             </button>
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

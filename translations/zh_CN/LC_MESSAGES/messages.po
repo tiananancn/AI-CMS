@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-10-30 15:36+0800\n"
+"POT-Creation-Date: 2025-11-09 08:55+0800\n"
 "PO-Revision-Date: 2025-10-30 07:07+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans_CN\n"
@@ -18,8 +18,53 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
+#: templates/article_detail.html:3 templates/articles_list.html:3
+#: templates/base.html:301 templates/base.html:389
+#: templates/image_detail.html:3 templates/images_list.html:3
+#: templates/video_detail.html:3 templates/videos_list.html:3
+msgid "我的CMS"
+msgstr ""
+
+#: templates/articles_list.html:3
+msgid "文章列表"
+msgstr ""
+
+#: templates/articles_list.html:74 templates/index.html:99
+#: templates/index.html:261
+msgid "阅读更多"
+msgstr ""
+
 #: templates/base.html:6 templates/index.html:3
 msgid "AI-CMS - 智能内容管理系统"
+msgstr ""
+
+#: templates/admin/base.html:426 templates/base.html:352
+msgid "管理后台"
+msgstr ""
+
+#: templates/base.html:384
+msgid "关于CMS"
+msgstr ""
+
+#: templates/base.html:385
+msgid "这是一个功能完整的内容管理系统，支持文章、视频和图片管理。"
+msgstr ""
+
+#: templates/base.html:388
+msgid "联系我们"
+msgstr ""
+
+#: templates/base.html:389
+msgid "保留所有权利"
+msgstr ""
+
+#: templates/images_list.html:3
+msgid "图片列表"
+msgstr ""
+
+#: templates/images_list.html:70 templates/index.html:177
+#: templates/index.html:321
+msgid "查看大图"
 msgstr ""
 
 #: templates/index.html:20 templates/index.html:47
@@ -34,112 +79,117 @@ msgstr ""
 msgid "阅读文章"
 msgstr ""
 
-#: templates/index.html:27 templates/index.html:54
+#: templates/index.html:27 templates/index.html:54 templates/index.html:141
+#: templates/index.html:294 templates/videos_list.html:71
 msgid "观看视频"
 msgstr ""
 
-#: templates/index.html:70 templates/index.html:120 templates/index.html:161
-#: templates/index.html:239 templates/index.html:271 templates/index.html:303
+#: templates/index.html:70 templates/index.html:121 templates/index.html:163
+#: templates/index.html:242 templates/index.html:275 templates/index.html:308
 msgid "查看更多"
 msgstr ""
 
-#: templates/index.html:107
+#: templates/index.html:108
 msgid "暂无文章"
 msgstr ""
 
-#: templates/index.html:148
+#: templates/index.html:150
 msgid "暂无视频"
 msgstr ""
 
-#: templates/index.html:183
+#: templates/index.html:186
 msgid "暂无图片"
 msgstr ""
 
-#: templates/index.html:225 templates/index.html:357
+#: templates/index.html:228 templates/index.html:363
 msgid "暂无链接"
 msgstr ""
 
-#: templates/index.html:238
+#: templates/index.html:241
 msgid "最新文章"
 msgstr ""
 
-#: templates/index.html:270
+#: templates/index.html:274
 msgid "最新视频"
 msgstr ""
 
-#: templates/index.html:302
+#: templates/index.html:307
 msgid "最新图片"
 msgstr ""
 
-#: templates/index.html:328
+#: templates/index.html:334
 msgid "常用链接"
+msgstr ""
+
+#: templates/videos_list.html:3
+msgid "视频列表"
 msgstr ""
 
 #: templates/admin/base.html:6
 msgid "CMS管理后台"
 msgstr ""
 
-#: templates/admin/base.html:218
+#: templates/admin/base.html:338
 msgid "AI-CMS管理后台"
 msgstr ""
 
-#: templates/admin/base.html:224
+#: templates/admin/base.html:344
 msgid "仪表盘"
 msgstr ""
 
-#: templates/admin/base.html:229
+#: templates/admin/base.html:349
 msgid "文章管理"
 msgstr ""
 
-#: templates/admin/base.html:234
+#: templates/admin/base.html:354
 msgid "视频管理"
 msgstr ""
 
-#: templates/admin/base.html:239
+#: templates/admin/base.html:359
 msgid "图片管理"
 msgstr ""
 
-#: templates/admin/base.html:245
+#: templates/admin/base.html:365
+msgid "用户管理"
+msgstr ""
+
+#: templates/admin/base.html:372
 msgid "版面管理"
 msgstr ""
 
-#: templates/admin/base.html:252
+#: templates/admin/base.html:379
 msgid "首页配置"
 msgstr ""
 
-#: templates/admin/base.html:257 templates/admin/homepage_content.html:3
+#: templates/admin/base.html:384 templates/admin/homepage_content.html:3
 #: templates/admin/homepage_content.html:9
 msgid "首页内容管理"
 msgstr ""
 
-#: templates/admin/base.html:262 templates/admin/carousel_management.html:3
+#: templates/admin/base.html:389 templates/admin/carousel_management.html:3
 msgid "轮播图管理"
 msgstr ""
 
-#: templates/admin/base.html:267
+#: templates/admin/base.html:394
 msgid "动态页面"
 msgstr ""
 
-#: templates/admin/base.html:272 templates/admin/menu_management.html:3
+#: templates/admin/base.html:399 templates/admin/menu_management.html:3
 #: templates/admin/menu_management.html:53
 msgid "菜单管理"
 msgstr ""
 
-#: templates/admin/base.html:277 templates/admin/links.html:3
+#: templates/admin/base.html:404 templates/admin/links.html:3
 #: templates/admin/links.html:55
 msgid "链接管理"
 msgstr ""
 
-#: templates/admin/base.html:284
+#: templates/admin/base.html:411
 msgid "前台首页"
 msgstr ""
 
-#: templates/admin/base.html:289
+#: templates/admin/base.html:416
 msgid "退出登录"
-msgstr ""
-
-#: templates/admin/base.html:299
-msgid "管理后台"
 msgstr ""
 
 #: templates/admin/carousel_management.html:9
@@ -425,6 +475,26 @@ msgstr ""
 
 #~ msgid "关于CMS"
 #~ msgstr "关于CMS"
+
+#: templates/admin/login.html:6 templates/admin/login.html:52
+msgid "管理员登录"
+msgstr ""
+
+#: templates/admin/login.html:6
+msgid "CMS后台"
+msgstr ""
+
+#: templates/admin/login.html:66
+msgid "用户名"
+msgstr ""
+
+#: templates/admin/login.html:74
+msgid "密码"
+msgstr ""
+
+#: templates/admin/login.html:82
+msgid "登录"
+msgstr ""
 
 #~ msgid "这是一个功能完整的内容管理系统，支持文章、视频和图片管理。"
 #~ msgstr "这是一个功能完整的内容管理系统，支持文章、视频和图片管理。"

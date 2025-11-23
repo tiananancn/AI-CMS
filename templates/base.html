@@ -10,14 +10,11 @@
     <link rel="preload" href="{{ url_for('static', filename='css/all.min.css') }}" as="style" crossorigin>
     <link rel="preload" href="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}" as="script" crossorigin>
 
-    <!-- DNS prefetch for external resources -->
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <!-- DNS prefetch for local resources -->
+    <link rel="dns-prefetch" href="{{ url_for('static', filename='') }}">
 
-    <!-- Preconnect to external domains for faster connection -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <!-- Preconnect to local domain for faster connection -->
+    <link rel="preconnect" href="{{ url_for('static', filename='') }}" crossorigin>
 
     <!-- Edge specific optimizations -->
     <meta http-equiv="x-dns-prefetch-control" content="on">
@@ -298,7 +295,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="display: block;">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-rocket me-2"></i>我的CMS
+                <i class="fas fa-rocket me-2"></i>{% trans %}我的CMS{% endtrans %}
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -349,7 +346,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('admin_login') }}">
-                            <i class="fas fa-user-shield me-1"></i>管理后台
+                            <i class="fas fa-user-shield me-1"></i>{% trans %}管理后台{% endtrans %}
                         </a>
                     </li>
                 </ul>
@@ -381,12 +378,12 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>关于CMS</h5>
-                    <p class="text-muted">这是一个功能完整的内容管理系统，支持文章、视频和图片管理。</p>
+                    <h5>{% trans %}关于CMS{% endtrans %}</h5>
+                    <p class="text-muted">{% trans %}这是一个功能完整的内容管理系统，支持文章、视频和图片管理。{% endtrans %}</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <h5>联系我们</h5>
-                    <p class="text-muted">© 2024 我的CMS. 保留所有权利.</p>
+                    <h5>{% trans %}联系我们{% endtrans %}</h5>
+                    <p class="text-muted">© 2024 {% trans %}我的CMS{% endtrans %}. {% trans %}保留所有权利{% endtrans %}.</p>
                 </div>
             </div>
         </div>

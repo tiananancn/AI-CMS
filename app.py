@@ -7,7 +7,7 @@ from models import db, Article, Video, Image, DynamicPage, ContentBlock, Homepag
 from datetime import datetime
 import os
 import uuid
-import imghdr
+# import imghdr  # deprecated in Python 3.14, use PIL instead
 import re
 from functools import wraps
 from PIL import Image as PILImage
@@ -350,7 +350,11 @@ def validate_file_type(file_path, expected_type=None):
         return False
 
     if expected_type == 'image':
-        return imghdr.what(file_path) is not None
+        try:
+            with PILImage.open(file_path) as img:
+                return img.format is not None
+        except:
+            return False
     elif expected_type == 'video':
         # 简单的视频文件检查
         video_extensions = {'.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'}
@@ -1425,6 +1429,11 @@ def api_update_homepage_config():
         config.enabled = data['enabled']
 
     db.session.commit()
+    
+    # 清除首页缓存，使配置立即生效
+    global _index_cache
+    _index_cache = {'timestamp': 0, 'data': None}
+    
     return jsonify(config.to_dict())
 
 # ==================== 轮播图管理 ====================
@@ -1485,6 +1494,10 @@ def api_update_carousel_config():
 
     config.set_config(config_data)
     db.session.commit()
+    
+    # 清除首页缓存，使配置立即生效
+    global _index_cache
+    _index_cache = {'timestamp': 0, 'data': None}
 
     return jsonify(config.to_dict())
 

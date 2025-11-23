@@ -96,7 +96,7 @@
                                 <p class="card-text text-muted">{{ article.excerpt or (article.content|striptags)[:100] ~ '...' }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">{{ article.created_at.strftime('%Y-%m-%d') }}</small>
-                                    <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">阅读更多</a>
+                                    <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">{% trans %}阅读更多{% endtrans %}</a>
                                 </div>
                             </div>
                         </div>
@@ -135,10 +135,10 @@
                             {% endif %}
                             <div class="card-body">
                                 <h5 class="card-title">{{ video.title }}</h5>
-                                <p class="card-text text-muted">{{ video.description or '暂无描述' }}</p>
+                                <p class="card-text text-muted">{{ video.description or '{% trans %}暂无描述{% endtrans %}' }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">{{ video.created_at.strftime('%Y-%m-%d') }}</small>
-                                    <a href="{{ url_for('video_detail', slug=video.slug) }}" class="btn btn-sm btn-danger">观看视频</a>
+                                    <a href="{{ url_for('video_detail', slug=video.slug) }}" class="btn btn-sm btn-danger">{% trans %}观看视频{% endtrans %}</a>
                                 </div>
                             </div>
                         </div>
@@ -174,7 +174,7 @@
                                 <h6 class="card-title">{{ image.title }}</h6>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">{{ image.created_at.strftime('%Y-%m-%d') }}</small>
-                                    <a href="{{ url_for('image_detail', slug=image.slug) }}" class="btn btn-sm btn-success">查看大图</a>
+                                    <a href="{{ url_for('image_detail', slug=image.slug) }}" class="btn btn-sm btn-success">{% trans %}查看大图{% endtrans %}</a>
                                 </div>
                             </div>
                         </div>
@@ -258,7 +258,7 @@
                         <p class="card-text text-muted">{{ article.excerpt or (article.content|striptags)[:100] ~ '...' }}</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">{{ article.created_at.strftime('%Y-%m-%d') }}</small>
-                            <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">阅读更多</a>
+                            <a href="{{ url_for('article_detail', slug=article.slug) }}" class="btn btn-sm btn-primary">{% trans %}阅读更多{% endtrans %}</a>
                         </div>
                     </div>
                 </div>
@@ -288,10 +288,10 @@
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ video.title }}</h5>
-                        <p class="card-text text-muted">{{ video.description or '暂无描述' }}</p>
+                        <p class="card-text text-muted">{{ video.description or '{% trans %}暂无描述{% endtrans %}' }}</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">{{ video.created_at.strftime('%Y-%m-%d') }}</small>
-                            <a href="{{ url_for('video_detail', slug=video.slug) }}" class="btn btn-sm btn-danger">观看视频</a>
+                            <a href="{{ url_for('video_detail', slug=video.slug) }}" class="btn btn-sm btn-danger">{% trans %}观看视频{% endtrans %}</a>
                         </div>
                     </div>
                 </div>
@@ -318,7 +318,7 @@
                         <h6 class="card-title">{{ image.title }}</h6>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">{{ image.created_at.strftime('%Y-%m-%d') }}</small>
-                            <a href="{{ url_for('image_detail', slug=image.slug) }}" class="btn btn-sm btn-success">查看大图</a>
+                            <a href="{{ url_for('image_detail', slug=image.slug) }}" class="btn btn-sm btn-success">{% trans %}查看大图{% endtrans %}</a>
                         </div>
                     </div>
                 </div>

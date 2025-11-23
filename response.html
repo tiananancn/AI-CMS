@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-CMS - 智能内容管理系统</title>
+
+    <!-- Preload critical resources for Edge browser -->
+    <link rel="preload" href="/static/css/bootstrap.min.css" as="style" crossorigin>
+    <link rel="preload" href="/static/css/all.min.css" as="style" crossorigin>
+    <link rel="preload" href="/static/js/bootstrap.bundle.min.js" as="script" crossorigin>
+
+    <!-- DNS prefetch for local resources -->
+    <link rel="dns-prefetch" href="/static/">
+
+    <!-- Preconnect to local domain for faster connection -->
+    <link rel="preconnect" href="/static/" crossorigin>
+
+    <!-- Edge specific optimizations -->
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="theme-color" content="#667eea">
+    <meta name="msapplication-config" content="none">
+
+    <!-- Enable browser caching and compression hints -->
+    <meta http-equiv="Cache-Control" content="max-age=31536000">
+    <meta http-equiv="Expires" content="Mon, 01 Jan 2026 00:00:00 GMT">
+
+    <!-- Edge-specific performance hints -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- Preload key resources for critical rendering path -->
+    <link rel="preload" href="/" as="document">
+
+    <!-- Service Worker registration for offline caching -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js').catch(function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+
+    <!-- Bootstrap 5 CSS - Local -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome - Local -->
+    <link href="/static/css/all.min.css" rel="stylesheet">
+    <!-- Quill Editor CSS - Local -->
+    <link href="/static/css/quill.local.css" rel="stylesheet">
+
+    <!-- Edge浏览器优化 -->
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+
+    <!-- Critical CSS inline for faster rendering -->
+    <style>
+        /* Critical above-the-fold CSS */
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        .navbar { display: none; } /* Prevent layout shift */
+
+        /* Prevent Edge browser from requesting missing fonts */
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: local('Arial'), local('Helvetica'), local('sans-serif');
+        }
+        @font-face {
+            font-family: 'Font Awesome 5 Free';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: local('Arial'), local('Helvetica'), local('sans-serif');
+        }
+        /* Fallback font to avoid slow loading in Edge */
+        .fa, .fas, .far, .fab {
+            font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free', Arial, sans-serif !important;
+        }
+
+        /* Loading spinner for better UX during slow loads */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+        }
+
+        /* 图片轮播样式 */
+        .hero-slide {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 500px;
+            position: relative;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        #heroCarousel {
+            margin-bottom: 3rem;
+        }
+
+        #heroCarousel .carousel-control-prev,
+        #heroCarousel .carousel-control-next {
+            width: 5%;
+        }
+
+        #heroCarousel .carousel-indicators button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+
+        .content-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .link-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e0e0e0;
+        }
+
+        .link-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+
+        .link-image {
+            width: 100%;
+            height: 80px;
+            object-fit: contain;
+        }
+
+        .content-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* 封面图片红圈位置样式 */
+        .cover-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(220, 53, 69, 0.9);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #357abd;
+            border-color: #357abd;
+        }
+
+        .footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        .alert {
+            border-radius: 8px;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        /* 响应式图片轮播 */
+        @media (max-width: 768px) {
+            .hero-slide {
+                height: 300px;
+            }
+
+            .hero-overlay {
+                padding: 1rem;
+            }
+
+            .hero-overlay h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero-overlay .lead {
+                font-size: 1rem;
+            }
+
+            .hero-overlay .btn-lg {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay for slow connections -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="display: block;">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-rocket me-2"></i>我的CMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    
+                    <li class="nav-item ">
+                        
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>
+                            首页
+                        </a>
+                        
+                    </li>
+                    
+                    <li class="nav-item ">
+                        
+                        <a class="nav-link" href="/articles">
+                            <i class="fas fa-newspaper me-1"></i>
+                            文章
+                        </a>
+                        
+                    </li>
+                    
+                    <li class="nav-item ">
+                        
+                        <a class="nav-link" href="/videos">
+                            <i class="fas fa-video me-1"></i>
+                            视频
+                        </a>
+                        
+                    </li>
+                    
+                    <li class="nav-item ">
+                        
+                        <a class="nav-link" href="/images">
+                            <i class="fas fa-images me-1"></i>
+                            图片
+                        </a>
+                        
+                    </li>
+                    
+                    <li class="nav-item ">
+                        
+                        <a class="nav-link" href="/page/taa">
+                            
+                            动态页面
+                        </a>
+                        
+                    </li>
+                    
+                </ul>
+                <ul class="navbar-nav">
+                    <!-- 语言切换器 -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe me-1"></i>
+                            中文
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            
+                            <li>
+                                <a class="dropdown-item active"
+                                   href="/set_language/zh_CN">
+                                    🇨🇳 中文
+                                </a>
+                            </li>
+                            
+                            <li>
+                                <a class="dropdown-item "
+                                   href="/set_language/en">
+                                    🇬🇧 English
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/login">
+                            <i class="fas fa-user-shield me-1"></i>管理后台
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash消息 -->
+    
+        
+    
+
+    <!-- 主要内容 -->
+    <main>
+        
+<!-- Hero区域 - 图片轮播 -->
+
+<div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+        
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" ></button>
+        
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" ></button>
+        
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3" ></button>
+        
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="4" ></button>
+        
+    </div>
+    <div class="carousel-inner">
+        
+        <div class="carousel-item active">
+            <div class="hero-slide" style="background-image: url('/static/uploads/images/41fcafb9-6fef-4b19-89d7-aecb29562e83_89719e25-b2f7-43fa-82f7-33438e7eb01f_1761805565.png');">
+                <div class="hero-overlay">
+                    <div class="container text-center text-white">
+                        <h1 class="display-4 mb-3 fw-bold">欢迎来到AI-CMS</h1>
+                        <p class="lead mb-4 opacity-90">智能内容管理系统，让创作更简单</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/articles" class="btn btn-light btn-lg">
+                                <i class="fas fa-newspaper me-2"></i>阅读文章
+                            </a>
+                            <a href="/videos" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-video me-2"></i>观看视频
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="carousel-item ">
+            <div class="hero-slide" style="background-image: url('/static/uploads/images/017c4b24-95dd-459b-b97c-8576ac093217_c3d7154d-8bed-42bc-9c67-909f323d2094_1761806407.png');">
+                <div class="hero-overlay">
+                    <div class="container text-center text-white">
+                        <h1 class="display-4 mb-3 fw-bold">欢迎来到AI-CMS</h1>
+                        <p class="lead mb-4 opacity-90">智能内容管理系统，让创作更简单</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/articles" class="btn btn-light btn-lg">
+                                <i class="fas fa-newspaper me-2"></i>阅读文章
+                            </a>
+                            <a href="/videos" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-video me-2"></i>观看视频
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="carousel-item ">
+            <div class="hero-slide" style="background-image: url('/static/uploads/images/79cde71c-0347-406f-bee2-90978ccf85a0_ba22340a-664e-465c-a915-48639b344eff_1761806485.png');">
+                <div class="hero-overlay">
+                    <div class="container text-center text-white">
+                        <h1 class="display-4 mb-3 fw-bold">欢迎来到AI-CMS</h1>
+                        <p class="lead mb-4 opacity-90">智能内容管理系统，让创作更简单</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/articles" class="btn btn-light btn-lg">
+                                <i class="fas fa-newspaper me-2"></i>阅读文章
+                            </a>
+                            <a href="/videos" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-video me-2"></i>观看视频
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="carousel-item ">
+            <div class="hero-slide" style="background-image: url('/static/uploads/images/346313d6-8d35-4537-a234-0277cf5f4751_653e3b3a-3c52-49b9-987e-e6797140d53b_1761805644.png');">
+                <div class="hero-overlay">
+                    <div class="container text-center text-white">
+                        <h1 class="display-4 mb-3 fw-bold">欢迎来到AI-CMS</h1>
+                        <p class="lead mb-4 opacity-90">智能内容管理系统，让创作更简单</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/articles" class="btn btn-light btn-lg">
+                                <i class="fas fa-newspaper me-2"></i>阅读文章
+                            </a>
+                            <a href="/videos" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-video me-2"></i>观看视频
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="carousel-item ">
+            <div class="hero-slide" style="background-image: url('/static/uploads/images/0b8d71eb-7cd2-4f02-9cb2-7b812343019d_479c41d1-fcf6-41c9-8456-124e5681aa54_1761806485.png');">
+                <div class="hero-overlay">
+                    <div class="container text-center text-white">
+                        <h1 class="display-4 mb-3 fw-bold">欢迎来到AI-CMS</h1>
+                        <p class="lead mb-4 opacity-90">智能内容管理系统，让创作更简单</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/articles" class="btn btn-light btn-lg">
+                                <i class="fas fa-newspaper me-2"></i>阅读文章
+                            </a>
+                            <a href="/videos" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-video me-2"></i>观看视频
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</div>
+
+
+<!-- 动态内容区域 -->
+<div class="container">
+    
+        
+            
+
+            
+
+            
+
+            
+        
+            
+            <!-- 文章区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-newspaper me-2"></i>最新文章</h2>
+                    <a href="/articles" class="btn btn-outline-primary">查看更多</a>
+                </div>
+
+                <div class="row">
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card content-card h-100">
+                            <div class="position-relative">
+                                
+                                <img data-src="/static/uploads/images/699bd680-2fe1-44c9-be02-1e04f01a46eb_8a25b2b1-443f-4fe1-bd32-0286cc6181ad_2025-10-30_23.13.27.png" class="content-thumbnail lazy-image" alt="全部靠AI实现的CMS"
+                                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
+                                
+
+                                <!-- 红圈封面标识 -->
+                                
+                                <div class="cover-badge">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">全部靠AI实现的CMS</h5>
+                                <p class="card-text text-muted">1. 技术路径：依赖AI生成前后端代码、数据库结构，自动集成权限、内容管理模块，替代人工编码；2. 核心优势：缩短开发周期，降低技术门槛，非专业开发者也能落地；3. 潜在问题：生成代码可能存在冗余或安...</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">2025-11-03</small>
+                                    <a href="/article/%E5%85%A8%E9%83%A8%E9%9D%A0ai%E5%AE%9E%E7%8E%B0%E7%9A%84cms" class="btn btn-sm btn-primary">阅读更多</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+            
+
+            
+
+            
+
+            
+        
+            
+
+            
+            <!-- 视频区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-video me-2"></i>最新视频</h2>
+                    <a href="/videos" class="btn btn-outline-danger">查看更多</a>
+                </div>
+
+                <div class="row">
+                    
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-video fa-3x mb-3 d-block"></i>
+                            <p>暂无视频</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+            
+
+            
+
+            
+        
+            
+
+            
+
+            
+            <!-- 图片区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-images me-2"></i>最新图片</h2>
+                    <a href="/images" class="btn btn-outline-success">查看更多</a>
+                </div>
+
+                <div class="row">
+                    
+                    <div class="col-md-3 mb-4">
+                        <div class="card content-card h-100">
+                            <img data-src="/static/uploads/images/017c4b24-95dd-459b-b97c-8576ac093217_c3d7154d-8bed-42bc-9c67-909f323d2094_1761806407.png" class="content-thumbnail lazy-image" alt="a (5)"
+                                 style="height: 200px; object-fit: cover;"
+                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
+                            <div class="card-body">
+                                <h6 class="card-title">a (5)</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">2025-11-03</small>
+                                    <a href="/image/a-5" class="btn btn-sm btn-success">查看大图</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-4">
+                        <div class="card content-card h-100">
+                            <img data-src="/static/uploads/images/41fcafb9-6fef-4b19-89d7-aecb29562e83_89719e25-b2f7-43fa-82f7-33438e7eb01f_1761805565.png" class="content-thumbnail lazy-image" alt="a (3)"
+                                 style="height: 200px; object-fit: cover;"
+                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
+                            <div class="card-body">
+                                <h6 class="card-title">a (3)</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">2025-11-03</small>
+                                    <a href="/image/a-3" class="btn btn-sm btn-success">查看大图</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-4">
+                        <div class="card content-card h-100">
+                            <img data-src="/static/uploads/images/79cde71c-0347-406f-bee2-90978ccf85a0_ba22340a-664e-465c-a915-48639b344eff_1761806485.png" class="content-thumbnail lazy-image" alt="a (4)"
+                                 style="height: 200px; object-fit: cover;"
+                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23f0f0f0'/%3E%3C/svg%3E">
+                            <div class="card-body">
+                                <h6 class="card-title">a (4)</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">2025-11-03</small>
+                                    <a href="/image/a-4" class="btn btn-sm btn-success">查看大图</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+            
+
+            
+        
+            
+
+            
+
+            
+
+            
+            <!-- 链接区域 -->
+            <section class="mb-5 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-link me-2"></i>常用链接</h2>
+                </div>
+
+                <div class="row">
+                    
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-link fa-3x mb-3 d-block"></i>
+                            <p>暂无链接</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+            
+        
+    
+</div>
+
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>关于CMS</h5>
+                    <p class="text-muted">这是一个功能完整的内容管理系统，支持文章、视频和图片管理。</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5>联系我们</h5>
+                    <p class="text-muted">© 2024 我的CMS. 保留所有权利.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Load non-critical JS asynchronously -->
+    <script>
+        // Remove loading overlay when page is fully loaded
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const overlay = document.getElementById('loadingOverlay');
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.remove(), 300);
+                }
+            }, 100);
+        });
+
+        // Load Bootstrap JS asynchronously without blocking rendering
+        (function() {
+            const script = document.createElement('script');
+            script.src = "/static/js/bootstrap.bundle.min.js";
+            script.async = true;
+            script.onload = function() {
+                console.log('Bootstrap loaded successfully');
+            };
+            document.head.appendChild(script);
+        })();
+
+        // Load Quill editor asynchronously only when needed (Local)
+        window.quillReady = new Promise((resolve, reject) => {
+            if (window.Quill) {
+                resolve(window.Quill);
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = "/static/js/quill.min.js";
+            script.async = true;
+            script.onload = () => {
+                console.log('Quill loaded from local');
+                resolve(window.Quill);
+            };
+            script.onerror = () => {
+                console.warn('Failed to load Quill from local, using fallback');
+                reject(new Error('Failed to load Quill'));
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+
+    <!-- Custom JS -->
+    
+
+    <!-- Optimized image loading with performance monitoring -->
+    <script>
+        // Performance monitoring
+        const loadStart = performance.now();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 首屏图片立即加载
+            const aboveFoldImages = document.querySelectorAll('#heroCarousel img, .content-card img');
+            aboveFoldImages.forEach(img => {
+                const src = img.getAttribute('data-src');
+                if (src) {
+                    img.src = src;
+                    img.removeAttribute('data-src');
+                }
+                // 移除懒加载类名
+                img.classList.remove('lazy-image');
+            });
+
+            // 只对非首屏图片使用懒加载
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            if (lazyImages.length > 0 && 'IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            const src = img.getAttribute('data-src');
+                            if (src) {
+                                img.src = src;
+                                img.removeAttribute('data-src');
+                                img.classList.add('loaded');
+                            }
+                            observer.unobserve(img);
+                        }
+                    });
+                }, {
+                    rootMargin: '200px 0px', // 提前200px开始加载
+                    threshold: 0.01
+                });
+
+                lazyImages.forEach(img => {
+                    imageObserver.observe(img);
+                });
+            }
+
+            // Log performance metrics
+            window.addEventListener('load', function() {
+                const loadTime = performance.now() - loadStart;
+                console.log(`🚀 Page loaded in ${loadTime.toFixed(2)}ms`);
+
+                // Performance feedback for Edge
+                if (loadTime > 2000) {
+                    console.warn('⚠️ Slow loading detected. Consider optimizing images or enabling compression.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
